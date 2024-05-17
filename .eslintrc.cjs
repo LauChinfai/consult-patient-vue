@@ -26,7 +26,7 @@ module.exports = {
     'vue/multi-word-component-names': [
       'warn',
       {
-        ignores: ['index']
+        ignores: ['index', 'login']
       }
     ],
     'vue/no-setup-props-destructure': ['off'],
