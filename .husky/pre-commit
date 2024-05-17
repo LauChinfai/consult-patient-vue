@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# npm test
+pnpm lint-staged
+# 以上为自己修改内容，打包提交前使用pnpm lint
