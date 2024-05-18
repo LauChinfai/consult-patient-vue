@@ -19,10 +19,11 @@ instance.interceptors.request.use(
     Promise.reject(err)
   }
 )
+
 instance.interceptors.response.use(
   (res) => {
-    if (res.data?.code !== 1000) {
-      showToast(res.data?.message || `请求失败`)
+    if (res.data?.code !== 10000) {
+      showToast('测试文本' || res.data?.message || `请求失败`)
       Promise.reject(res.data)
     }
     return res.data

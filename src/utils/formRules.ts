@@ -1,3 +1,5 @@
+import type { FieldRule } from 'vant'
+
 export const formRules = {
   mobile: [
     { required: true, message: '请填写手机号' },
@@ -11,3 +13,8 @@ export const formRules = {
     }
   ]
 }
+
+export const codeRule: FieldRule[] = [
+  { required: true, message: '请输入验证码' },
+  { pattern: /^\d{6}$/, message: '请输入6位验证码' }
+]
