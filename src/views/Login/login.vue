@@ -2,7 +2,7 @@
 import { formRules } from '@/utils/formRules'
 import { showToast, type FieldInstance, type FormInstance } from 'vant'
 import { ref } from 'vue'
-import { loginByPassword } from '@/services/user'
+import { loginByCode, loginByPassword } from '@/services/user'
 import { useUser } from '@/stores'
 import { useRoute, useRouter } from 'vue-router'
 import { codeRule } from '@/utils/formRules'
@@ -19,7 +19,9 @@ const agree = ref(false)
 //表单提交
 const formSubmit = async () => {
   if (!agree.value) return showToast('请勾选协议')
-  const res = await loginByPassword(mobile.value, password.value)
+  const res = isPass.value
+    ? await loginByPassword(mobile.value, password.value)
+    : await loginByCode(mobile.value, code.value)
   console.log(res)
   //登录成功后将信息存储在本地
   const store = useUser()
@@ -39,7 +41,7 @@ const time = ref(0)
 const onSend = async () => {
   if (time.value > 0) return
   await form.value?.validate('mobile')
-  await sendMobileCode(mobile.value, 'login')
+  const res = await sendMobileCode(mobile.value, 'login')
   showToast('发送成功')
   time.value = 5
   //开启倒计时
@@ -51,6 +53,9 @@ const onSend = async () => {
     }
   }, 1000)
 }
+
+//定义密码显示
+const passShow = ref(false)
 
 onMounted(() => {
   clearInterval(timer)
@@ -83,10 +88,18 @@ onMounted(() => {
       <van-field
         v-if="isPass"
         placeholder="请输入密码"
-        type="password"
+        :type="passShow ? 'text' : 'password'"
         v-model="password"
         :rules="formRules.password"
-      ></van-field>
+      >
+        <template #button>
+          <Cp-Icon
+            :name="passShow ? 'login-eye-on' : 'login-eye-off'"
+            @click="passShow = !passShow"
+            class="cpIcon"
+          ></Cp-Icon>
+        </template>
+      </van-field>
       <!-- 短信登录 -->
       <van-field
         v-else
@@ -120,6 +133,7 @@ onMounted(() => {
         <a href="javascript:;">忘记密码？</a>
       </div>
     </van-form>
+
     <!-- 底部 -->
     <div class="login-other">
       <van-divider>第三方登录</van-divider>
@@ -131,6 +145,11 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+:deep() {
+  .cpIcon {
+    margin-right: 10px;
+  }
+}
 .login {
   &-page {
     padding-top: 46px;

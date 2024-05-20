@@ -8,5 +8,11 @@ export const loginByPassword = (mobile: string, password: string) => {
 
 //发送验证码
 export const sendMobileCode = (mobile: string, type: CodeType) => {
-  return request('/code', 'GET', { mobile, type })
+  return request<User>('/code', 'GET', { mobile, type })
+}
+
+//验证码登录
+
+export const loginByCode = (mobile: string, code: string) => {
+  return request<User>('/login', 'POST', { mobile, code })
 }

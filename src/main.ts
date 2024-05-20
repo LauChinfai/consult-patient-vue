@@ -5,6 +5,8 @@ import pinia from '@/stores'
 
 import App from './App.vue'
 import router from './router'
+//SVG地图
+import 'virtual:svg-icons-register'
 
 //导入样式包
 import 'vant/lib/index.css'
