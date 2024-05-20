@@ -3,15 +3,13 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-//使用SVG插件
-import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
-import path from 'path'
-
 //unplugin-vue-components的使用（自动注册组件）
 //导入主文件以及解析器
 import Components from 'unplugin-vue-components/vite'
 import { VantResolver } from 'unplugin-vue-components/resolvers'
 
+import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
+import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [

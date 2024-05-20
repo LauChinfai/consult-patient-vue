@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { formRules } from '@/utils/formRules'
-import { showToast, type FieldInstance, type FormInstance } from 'vant'
+import { showToast, type FormInstance } from 'vant'
 import { ref } from 'vue'
 import { loginByCode, loginByPassword } from '@/services/user'
 import { useUser } from '@/stores'
@@ -41,7 +41,7 @@ const time = ref(0)
 const onSend = async () => {
   if (time.value > 0) return
   await form.value?.validate('mobile')
-  const res = await sendMobileCode(mobile.value, 'login')
+  await sendMobileCode(mobile.value, 'login')
   showToast('发送成功')
   time.value = 5
   //开启倒计时
