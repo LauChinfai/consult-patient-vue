@@ -45,3 +45,8 @@ ol {
   margin: 0;
   padding: 0;
 }
+
+#nprogress .bar {
+  //优先级!important
+  background-color: var(--cp-primary) !important;
+}
