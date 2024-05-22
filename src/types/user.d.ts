@@ -13,3 +13,19 @@ export type CodeType =
   | 'changeMobile'
   | 'forgetPassword'
   | 'bindMobile'
+
+//定义个人中心返回值
+type OmitUser = Omit<User, 'token'>
+
+export type UserInfo = OmitUser & {
+  likeNumber: number
+  collectionNumber: string
+  score: number
+  couponNumber: number
+  orderInfo: {
+    paidNumber: number
+    receivedNumber: number
+    shippedNumber: number
+    finishedNumber: number
+  }
+}

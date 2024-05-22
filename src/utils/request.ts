@@ -1,7 +1,9 @@
 import axios, { AxiosError, type Method } from 'axios'
 import router from '@/router/index'
 import { useUser } from '@/stores'
-import { showToast } from 'vant'
+import { showFailToast, showToast } from 'vant'
+import { useRoute } from 'vue-router'
+const route = useRoute()
 const instance = axios.create({
   baseURL: 'https://consult-api.itheima.net/',
   timeout: 1000
@@ -36,11 +38,12 @@ instance.interceptors.response.use(
     if (err.response?.status === 401) {
       const store = useUser()
       store.delUser()
-
       router.push({
         path: '/login',
         query: { returnURL: router.currentRoute.value.fullPath }
       })
+      console.log(route.query.returnURL)
+      showFailToast('登录已过期')
     }
     return Promise.reject(err)
   }
@@ -58,8 +61,8 @@ type Data<T> = {
 //定义工具函数
 export const request = <T>(
   url: string,
-  method: Method = 'GET',
-  sendObj: Object
+  method?: Method = 'GET',
+  sendObj?: Object
 ) => {
   //自定义数据类型，因为本来axios的request是返回的自带axios类型的res,但是上面修改了返回的是res.data，所以这里的第一个泛型参数必须是any
   return instance.request<any, Data<T>>({

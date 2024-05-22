@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import nProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+import { showFailToast, showToast } from 'vant'
 
 //修改进度条设置
 nProgress.configure({
@@ -56,7 +57,10 @@ router.beforeEach((to) => {
   const store = useUser()
   //设置白名单
   const whiteList = ['/login']
-  if (!store.user?.token && !whiteList.includes(to.path)) return '/login'
+  if (!store.user?.token && !whiteList.includes(to.path)) {
+    showFailToast('登录超时')
+    return '/login'
+  }
 
   //开启进度条
   nProgress.start()
