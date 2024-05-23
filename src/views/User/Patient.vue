@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getPatientList } from '@/services/user'
-import type { PatientList } from '@/types/user'
+import type { Patient, PatientList } from '@/types/user'
+import { computed } from 'vue'
 import { onMounted } from 'vue'
 import { ref } from 'vue'
 const patientList = ref<PatientList>([])
@@ -20,6 +21,28 @@ const gender = ref(1)
 
 //右侧popup
 const showRight = ref(false)
+const showRightFn = () => {
+  showRight.value = true
+  newPatient.value = initPatient
+}
+
+//绑定患者
+const initPatient: Patient = {
+  name: '',
+  idCard: '',
+  gender: 1,
+  defaultFlag: 0
+}
+const newPatient = ref<Patient>({ ...initPatient })
+//判断性别
+const genderJudge = computed({
+  get: () => {
+    return newPatient.value.defaultFlag === 1 ? true : false
+  },
+  set: (value) => {
+    newPatient.value.defaultFlag = value ? 1 : 0
+  }
+})
 </script>
 
 <template>
@@ -42,7 +65,7 @@ const showRight = ref(false)
       <!-- 分割 -->
       <div class="patient-add">
         <cp-icon name="user-add" />
-        <p @click="showRight = true">添加患者</p>
+        <p @click="showRightFn()">添加患者</p>
       </div>
       <div class="patient-tip">最多可添加 6 人</div>
     </div>
@@ -56,17 +79,33 @@ const showRight = ref(false)
         :close="() => (showRight = false)"
       ></cp-nav-bar>
       <van-form autocomplete="off" ref="form">
-        <van-field label="真实姓名" placeholder="请输入真实姓名" />
-        <van-field label="身份证号" placeholder="请输入身份证号" />
+        <van-field
+          label="真实姓名"
+          placeholder="请输入真实姓名"
+          v-model="newPatient.name"
+        />
+
+        <van-field
+          label="身份证号"
+          placeholder="请输入身份证号"
+          v-model="newPatient.idCard"
+        />
         <van-field label="性别" class="pb4">
           <!-- 单选按钮组件 -->
           <template #input>
-            <cp-radio-btn :options="options"></cp-radio-btn>
+            <cp-radio-btn
+              :options="options"
+              v-model="newPatient.gender"
+            ></cp-radio-btn>
           </template>
         </van-field>
         <van-field label="默认就诊人">
           <template #input>
-            <van-checkbox :icon-size="18" round />
+            <van-checkbox
+              :icon-size="18"
+              round
+              v-model="newPatient.defaultFlag"
+            />
           </template>
         </van-field>
       </van-form>
@@ -81,6 +120,7 @@ const showRight = ref(false)
   padding: 46px 0 80px;
   :deep() {
     .van-popup {
+      padding-top: 46px;
       width: 100%;
       height: 100%;
     }
