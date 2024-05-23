@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
-defineProps<{
+const props = defineProps<{
   title?: string
   rightText?: string
+  close?: () => void
 }>()
 const emit = defineEmits<{
   (e: 'rightTextClick'): void
@@ -16,6 +17,7 @@ const clickRight = () => {
 const router = useRouter()
 //回退功能,通过historoy.state拿到路由跳转信息，以此判断回退目的地
 const clickLeft = () => {
+  if (props.close) return props.close()
   if (history.state?.back) {
     router.back()
   } else {

@@ -17,6 +17,9 @@ const options = [
   { label: '女', value: 0 }
 ]
 const gender = ref(1)
+
+//右侧popup
+const showRight = ref(false)
 </script>
 
 <template>
@@ -39,20 +42,51 @@ const gender = ref(1)
       <!-- 分割 -->
       <div class="patient-add">
         <cp-icon name="user-add" />
-        <p>添加患者</p>
+        <p @click="showRight = true">添加患者</p>
       </div>
       <div class="patient-tip">最多可添加 6 人</div>
     </div>
 
-    <!-- 测试 -->
-    <cp-radio-btn :options="options" v-model="gender"></cp-radio-btn>
+    <!--  -->
+    <!-- 弹框 -->
+    <van-popup v-model:show="showRight" position="right"
+      ><cp-nav-bar
+        right-text="保存"
+        title="添加患者"
+        :close="() => (showRight = false)"
+      ></cp-nav-bar>
+      <van-form autocomplete="off" ref="form">
+        <van-field label="真实姓名" placeholder="请输入真实姓名" />
+        <van-field label="身份证号" placeholder="请输入身份证号" />
+        <van-field label="性别" class="pb4">
+          <!-- 单选按钮组件 -->
+          <template #input>
+            <cp-radio-btn :options="options"></cp-radio-btn>
+          </template>
+        </van-field>
+        <van-field label="默认就诊人">
+          <template #input>
+            <van-checkbox :icon-size="18" round />
+          </template>
+        </van-field>
+      </van-form>
+    </van-popup>
+    <!--  -->
+    <!--  -->
   </div>
 </template>
 
 <style lang="scss" scoped>
 .patient-page {
   padding: 46px 0 80px;
+  :deep() {
+    .van-popup {
+      width: 100%;
+      height: 100%;
+    }
+  }
 }
+
 .patient-list {
   padding: 15px;
 }
