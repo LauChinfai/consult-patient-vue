@@ -22,6 +22,12 @@ const router = createRouter({
       component: () => import('@/views/Login/login.vue'),
       meta: { title: '登录' }
     },
+    //家庭档案
+    {
+      path: '/user/patient',
+      component: () => import('@/views/User/Patient.vue'),
+      meta: { title: '家庭档案' }
+    },
     {
       path: '/layout',
       component: () => import('@/views/Layout/index.vue'),

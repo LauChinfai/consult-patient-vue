@@ -110,6 +110,7 @@ const loginOut = async () => {
           :title="item.label"
           is-link
           :border="false"
+          @click="router.push(`${item.path}`)"
         >
           <template #icon
             ><cp-icon :name="`user-tool-0${index + 1}`"
