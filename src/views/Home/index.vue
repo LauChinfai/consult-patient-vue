@@ -1,4 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue'
+import knowledgeList from './components/knowledgeList.vue'
+
+const active = ref(1)
+</script>
 
 <template>
   <div class="home-page">
@@ -76,12 +81,18 @@
     </div>
     <!-- tabBars -->
     <van-tabs shrink sticky v-model:active="active">
-      <van-tab title="关注">1</van-tab>
-      <van-tab title="推荐">
-        <p v-for="i in 100" :key="i">内容</p>
+      <van-tab title="关注">
+        <knowledge-list type="like"></knowledge-list>
       </van-tab>
-      <van-tab title="减脂">3</van-tab>
-      <van-tab title="饮食">4</van-tab>
+      <van-tab title="推荐">
+        <knowledge-list type="recommend"></knowledge-list>
+      </van-tab>
+      <van-tab title="减脂">
+        <knowledge-list type="fatReduction"></knowledge-list>
+      </van-tab>
+      <van-tab title="饮食">
+        <knowledge-list type="food"></knowledge-list>
+      </van-tab>
     </van-tabs>
   </div>
 </template>
