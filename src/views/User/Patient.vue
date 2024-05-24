@@ -1,9 +1,21 @@
 <script setup lang="ts">
-import { getPatientList } from '@/services/user'
+import {
+  getPatientList,
+  addPatient,
+  editPatient,
+  delPatient
+} from '@/services/user'
 import type { Patient, PatientList } from '@/types/user'
 import { computed } from 'vue'
 import { onMounted } from 'vue'
 import { ref } from 'vue'
+import { patientNameRules, patientIdCardRules } from '@/utils/formRules'
+import {
+  showConfirmDialog,
+  showSuccessToast,
+  showToast,
+  type FormInstance
+} from 'vant'
 const patientList = ref<PatientList>([])
 const patientInit = async () => {
   patientList.value = (await getPatientList()).data
@@ -21,9 +33,18 @@ const gender = ref(1)
 
 //右侧popup
 const showRight = ref(false)
-const showRightFn = () => {
+const showRightFn = (item?: Patient) => {
   showRight.value = true
-  newPatient.value = initPatient
+  if (item?.id) {
+    console.log(item)
+    newPatient.value.id = item.id
+    newPatient.value.name = item.name
+    newPatient.value.idCard = item.idCard
+    newPatient.value.gender = item.gender
+    newPatient.value.defaultFlag = item.defaultFlag
+  } else {
+    newPatient.value = { ...initPatient }
+  }
 }
 
 //绑定患者
@@ -43,6 +64,48 @@ const genderJudge = computed({
     newPatient.value.defaultFlag = value ? 1 : 0
   }
 })
+
+//表单校验
+const form = ref<FormInstance>()
+const saveNew = async () => {
+  await form.value?.validate()
+  const gender = +newPatient.value.idCard.slice(-2, -1) % 2
+  if (gender === newPatient.value.gender) {
+    showConfirmDialog({
+      title: '温馨提示',
+      message: '您提交的性别与身份证信息不一致\n您确认提交吗？'
+    })
+  }
+  if (newPatient.value?.id) {
+    await showConfirmDialog({
+      title: '确认保存编辑吗？',
+      message: '确认保存编辑患者信息吗？'
+    })
+    await editPatient(newPatient.value)
+  } else {
+    await showConfirmDialog({
+      title: '确认保存吗？',
+      message: '确认保存为新患者吗'
+    })
+    await addPatient(newPatient.value)
+  }
+  showRight.value = false
+  newPatient.value = { ...initPatient }
+  patientInit()
+  showSuccessToast(newPatient.value.id ? '编辑成功' : '保存成功')
+}
+//删除患者
+const del = async () => {
+  await showConfirmDialog({
+    title: '确认',
+    message: `确认要删除 ${newPatient.value.name} 相关信息吗?\n此操作不可恢复`
+  })
+  await delPatient(newPatient.value?.id!)
+  patientInit()
+  showRight.value = false
+  newPatient.value = { ...initPatient }
+  showToast('删除成功')
+}
 </script>
 
 <template>
@@ -59,7 +122,9 @@ const genderJudge = computed({
           <span>{{ item.genderValue }}</span>
           <span>{{ `${item.age}` }}岁</span>
         </div>
-        <div class="icon"><cp-icon name="user-edit" /></div>
+        <div class="icon" @click="showRightFn(item)">
+          <cp-icon name="user-edit" />
+        </div>
         <div class="tag" v-if="item.defaultFlag">默认</div>
       </div>
       <!-- 分割 -->
@@ -75,20 +140,23 @@ const genderJudge = computed({
     <van-popup v-model:show="showRight" position="right"
       ><cp-nav-bar
         right-text="保存"
-        title="添加患者"
+        :title="newPatient.id ? '编辑患者' : '添加患者'"
         :close="() => (showRight = false)"
+        @click-right="saveNew"
       ></cp-nav-bar>
       <van-form autocomplete="off" ref="form">
         <van-field
           label="真实姓名"
           placeholder="请输入真实姓名"
           v-model="newPatient.name"
+          :rules="patientNameRules"
         />
 
         <van-field
           label="身份证号"
           placeholder="请输入身份证号"
           v-model="newPatient.idCard"
+          :rules="patientIdCardRules"
         />
         <van-field label="性别" class="pb4">
           <!-- 单选按钮组件 -->
@@ -109,6 +177,9 @@ const genderJudge = computed({
           </template>
         </van-field>
       </van-form>
+      <van-action-bar v-if="newPatient.id" @click="del">
+        <van-action-bar-button type="danger" text="删除" />
+      </van-action-bar>
     </van-popup>
     <!--  -->
     <!--  -->
@@ -204,5 +275,16 @@ const genderJudge = computed({
 }
 .pb4 {
   padding-bottom: 4px;
+}
+.van-action-bar {
+  margin: 0 auto;
+  width: 230px;
+  padding: 0 10px;
+  margin-bottom: 10px;
+  .van-button {
+    color: white;
+    font-size: 14px;
+    background-color: var(--cp-bg);
+  }
 }
 </style>
