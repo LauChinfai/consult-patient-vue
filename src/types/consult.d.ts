@@ -1,3 +1,5 @@
+import { ConsultType, IllnessTime } from '@/enum'
+
 //每条CARD的具体返回类型
 export type Knowledge = {
   id: string
@@ -83,3 +85,41 @@ export type DoctorPage = {
 
 //TODO   关注的类型      关注医生/关注文章/关注话题/关注疾病
 export type FollowType = 'doc' | 'knowledge' | 'topic' | 'disease'
+
+//问诊订单详情
+export type Consult = {
+  /** 问诊记录ID */
+  id: string
+  /** 问诊类型 */
+  type: ConsultType
+  /** 快速问诊类型，0 普通 1 三甲 */
+  illnessType: 0 | 1
+  /** 科室ID */
+  depId: string
+  /** 疾病描述 */
+  illnessDesc: string
+  /** 疾病持续时间 */
+  illnessTime: IllnessTime
+  /** 是否就诊过，0 未就诊过  1 就诊过 */
+  consultFlag: 0 | 1
+  /** 图片数组 */
+  pictures: Image[]
+  /** 患者ID */
+  patientId: string
+  /** 优惠券ID */
+  couponId: string
+}
+
+export type PartialConsult = Partial<Consult>
+
+//科室
+export type SubDep = {
+  //科室id
+  id: string
+  //科室名称
+  name: string
+}
+//科室
+export type TopDep = SubDep & {
+  child: SubDep[]
+}
