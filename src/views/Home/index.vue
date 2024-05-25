@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import knowledgeList from './components/knowledgeList.vue'
-
+import doctorCard from './components/FollowDoctor.vue'
 const active = ref(1)
 </script>
 
@@ -82,7 +82,8 @@ const active = ref(1)
     <!-- tabBars -->
     <van-tabs shrink sticky v-model:active="active">
       <van-tab title="关注">
-        <knowledge-list type="like"></knowledge-list>
+        <doctorCard></doctorCard>
+        <knowledge-list type="like"> </knowledge-list>
       </van-tab>
       <van-tab title="推荐">
         <knowledge-list type="recommend"></knowledge-list>
