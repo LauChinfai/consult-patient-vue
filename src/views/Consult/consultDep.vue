@@ -8,6 +8,7 @@ const depList = ref<TopDep[]>([])
 onMounted(async () => {
   const res = await getDepList()
   depList.value = res.data
+  DepTwo.value = depList.value[0].child
   console.log(depList.value)
 })
 

@@ -34,6 +34,13 @@ const router = createRouter({
       component: () => import('@/views/Consult/consultFast.vue'),
       meta: { title: '极速问诊' }
     },
+    //病情描述
+    {
+      path: '/consult/illness',
+      component: () => import('@/views/Consult/consultIllness.vue'),
+      meta: { title: '病情描述' }
+    },
+    //选择科室
     {
       path: '/consult/dep',
       component: () => import('@/views/Consult/consultDep.vue'),

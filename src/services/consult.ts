@@ -2,6 +2,7 @@ import type {
   DoctorPage,
   DoctorParams,
   FollowType,
+  Image,
   KnowledgePage,
   KnowledgeParams,
   TopDep
@@ -26,4 +27,11 @@ export const followOrUnfollow = (id: string, type: FollowType) => {
 //封装获取部门信息
 export const getDepList = () => {
   return request<TopDep>('/dep/all')
+}
+
+//上传图片
+export const uploadImg = (file: File) => {
+  const data = new FormData()
+  data.append('file', file)
+  return request<Image>('/upload', 'POST', data)
 }

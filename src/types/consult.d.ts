@@ -22,6 +22,11 @@ export type Knowledge = {
   /** 医生ID */
   creatorId: string
 }
+//定义图片列表
+export type Image = {
+  id: string
+  url: string
+}
 //List的返回类型
 export type KnowledgeList = Knowledge[]
 //返回res的类型
@@ -123,3 +128,8 @@ export type SubDep = {
 export type TopDep = SubDep & {
   child: SubDep[]
 }
+//收集病情表单
+export type ConsultIllness = Pick<
+  PartialConsult,
+  'illnessDesc' | 'illnessTime' | 'consultFlag' | 'pictures'
+>
