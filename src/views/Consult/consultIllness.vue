@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { IllnessTime } from '@/enum'
-import type { ConsultIllness } from '@/types/consult'
+import type { ConsultIllness, Image } from '@/types/consult'
 import type { UploaderAfterRead } from 'vant/lib/uploader/types'
 import { uploadImg } from '@/services/consult'
 import { computed } from 'vue'
-import { showToast } from 'vant'
+import { showConfirmDialog, showToast } from 'vant'
 import { useConsultStore } from '@/stores'
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 //设置时间
 const options = [
   { label: '一周内', value: IllnessTime.week },
@@ -28,7 +29,7 @@ const form = ref<ConsultIllness>({
   consultFlag: undefined,
   pictures: []
 })
-const fileList = ref([])
+const fileList = ref<Image[]>([])
 const onAfterRead: UploaderAfterRead = (item) => {
   //非数组非空判断
   if (Array.isArray(item)) return
@@ -36,6 +37,8 @@ const onAfterRead: UploaderAfterRead = (item) => {
   //修改状态为上传中
   item.status = 'uploading'
   item.message = '上传中'
+
+  console.log(item.file)
   //点击提交后
   uploadImg(item.file)
     .then((res) => {
@@ -44,6 +47,8 @@ const onAfterRead: UploaderAfterRead = (item) => {
       //添加唯一标识用作删除使用
       item.mark! = res.data.url
       form.value.pictures?.push(res.data)
+
+      console.log(form.value.pictures)
     })
     .catch((error) => {
       console.dir(error)
@@ -72,6 +77,23 @@ const sub = () => {
   store.setIllness(form.value)
   router.push({ path: '/user/patient', query: { isChange: 1 } })
 }
+
+//回显功能
+onMounted(() => {
+  if (store.consult.illnessDesc) {
+    showConfirmDialog({
+      title: '恢复',
+      message: '是否恢复之前的填写信息？',
+      closeOnPopstate: false
+    }).then(() => {
+      const { illnessTime, illnessDesc, consultFlag, pictures } = store.consult
+      form.value = { illnessDesc, illnessTime, consultFlag, pictures }
+      fileList.value = pictures || []
+      console.log(fileList.value)
+      console.log(form.value.pictures)
+    })
+  }
+})
 </script>
 
 <template>
