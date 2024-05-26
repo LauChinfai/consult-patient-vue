@@ -16,10 +16,23 @@ import {
   showToast,
   type FormInstance
 } from 'vant'
+import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useConsultStore } from '@/stores'
+import { nextTick } from 'vue'
+import router from '@/router'
 const patientList = ref<PatientList>([])
 const patientInit = async () => {
   patientList.value = (await getPatientList()).data
+  if (route.query.isChange && patientList.value.length) {
+    const defaultChoose = patientList.value.find(
+      (item) => item.defaultFlag === 1
+    )
+    if (defaultChoose) selectedId.value = defaultChoose.id
+    else selectedId.value = patientList.value[0].id
+  }
 }
+
 onMounted(() => {
   patientInit()
 })
@@ -106,14 +119,38 @@ const del = async () => {
   newPatient.value = { ...initPatient }
   showToast('删除成功')
 }
+
+//判断是否是家庭档案还是选择患者
+const route = useRoute()
+const isChanged = computed(() => {
+  return route.query.isChange ? true : false
+})
+const selectedId = ref('')
+const store = useConsultStore()
+const choose = (item: Patient) => {
+  if (route.query.isChange) {
+    selectedId.value = item.id || ''
+  }
+}
+const next = () => {
+  if (!selectedId.value) showToast('请选择患者')
+  store.setPatient(selectedId.value)
+  router.push('/consult/pay')
+}
 </script>
 
 <template>
   <div class="patient-page">
-    <cp-nav-bar title="家庭档案"></cp-nav-bar>
+    <cp-nav-bar :title="isChanged ? '选择患者' : '家庭档案'"></cp-nav-bar>
     <div class="patient-list">
       <!-- 列表部分 -->
-      <div class="patient-item" v-for="item in patientList" :key="item.id">
+      <div
+        class="patient-item"
+        v-for="item in patientList"
+        :key="item.id"
+        @click.stop="choose(item)"
+        :class="{ selected: selectedId === item.id }"
+      >
         <div class="info">
           <span class="name">{{ item.name }}</span>
           <span class="id">{{
@@ -182,11 +219,18 @@ const del = async () => {
       </van-action-bar>
     </van-popup>
     <!--  -->
+    <van-button class="next" block round type="primary" @click="next"
+      >下一步</van-button
+    >
     <!--  -->
   </div>
 </template>
 
 <style lang="scss" scoped>
+:deep(.next) {
+  width: 300px;
+  margin: 0 auto;
+}
 .patient-page {
   padding: 46px 0 80px;
   :deep() {
