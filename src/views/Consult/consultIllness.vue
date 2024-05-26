@@ -4,6 +4,10 @@ import { IllnessTime } from '@/enum'
 import type { ConsultIllness } from '@/types/consult'
 import type { UploaderAfterRead } from 'vant/lib/uploader/types'
 import { uploadImg } from '@/services/consult'
+import { computed } from 'vue'
+import { showToast } from 'vant'
+import { useConsultStore } from '@/stores'
+import { useRouter } from 'vue-router'
 //设置时间
 const options = [
   { label: '一周内', value: IllnessTime.week },
@@ -49,6 +53,24 @@ const onAfterRead: UploaderAfterRead = (item) => {
 }
 const onDeleteImg = (item) => {
   form.value.pictures?.filter((d) => d.url !== item.mark)
+}
+
+//生成计算属性判断表单是否必填
+const disabled = computed(
+  () =>
+    !form.value.illnessDesc ||
+    form.value.illnessTime === undefined ||
+    form.value.consultFlag === undefined
+)
+const store = useConsultStore()
+const router = useRouter()
+//点击按钮
+const sub = () => {
+  if (!form.value.illnessDesc) return showToast('请填写病情描述')
+  if (form.value.illnessTime === undefined) return showToast('请填写持续时间')
+  if (form.value.consultFlag === undefined) return showToast('请填写是否就诊')
+  store.setIllness(form.value)
+  router.push({ path: '/user/patient', query: { isChange: 1 } })
 }
 </script>
 
@@ -106,10 +128,32 @@ const onDeleteImg = (item) => {
         </p>
       </div>
     </div>
+    <!-- 确认按钮 -->
+    <van-button
+      block
+      round
+      type="primary"
+      :class="{ disabled: disabled }"
+      @click="sub"
+      >确认</van-button
+    >
   </div>
 </template>
 
 <style lang="scss" scoped>
+.van-button {
+  margin: 0 auto;
+  width: 300px;
+  font-size: 16px;
+  margin-bottom: 30px;
+  &.disabled {
+    opacity: 1;
+    background: #fafafa;
+    color: #d9dbde;
+    border: #fafafa;
+  }
+}
+
 .illness-img {
   padding-top: 16px;
   margin-bottom: 40px;
