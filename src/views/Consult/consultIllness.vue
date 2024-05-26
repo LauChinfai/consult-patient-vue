@@ -38,7 +38,6 @@ const onAfterRead: UploaderAfterRead = (item) => {
   item.status = 'uploading'
   item.message = '上传中'
 
-  console.log(item.file)
   //点击提交后
   uploadImg(item.file)
     .then((res) => {
@@ -47,8 +46,6 @@ const onAfterRead: UploaderAfterRead = (item) => {
       //添加唯一标识用作删除使用
       item.mark! = res.data.url
       form.value.pictures?.push(res.data)
-
-      console.log(form.value.pictures)
     })
     .catch((error) => {
       console.dir(error)
@@ -89,8 +86,6 @@ onMounted(() => {
       const { illnessTime, illnessDesc, consultFlag, pictures } = store.consult
       form.value = { illnessDesc, illnessTime, consultFlag, pictures }
       fileList.value = pictures || []
-      console.log(fileList.value)
-      console.log(form.value.pictures)
     })
   }
 })
