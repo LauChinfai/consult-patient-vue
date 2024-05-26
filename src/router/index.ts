@@ -4,7 +4,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import nProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { showFailToast, showToast } from 'vant'
-
 //修改进度条设置
 nProgress.configure({
   //关闭转圈
@@ -46,6 +45,22 @@ const router = createRouter({
       component: () => import('@/views/Consult/consultDep.vue'),
       meta: { title: '选择科室' }
     },
+    //支付页面
+    {
+      path: '/consult/pay',
+      component: () => import('@/views/Consult/consultPay.vue'),
+      meta: { title: '请支付' }
+    },
+    //问诊室
+    {
+      path: '/room',
+      component: () => import('@/views/Room/index.vue'),
+      meta: { title: '问诊室' },
+      //钩子函数，在进入路由之前
+      beforeEnter(to) {
+        if (to.query.payResult === 'false') return '/user/consult'
+      }
+    },
     {
       path: '/layout',
       component: () => import('@/views/Layout/index.vue'),
@@ -78,6 +93,9 @@ const router = createRouter({
 
 //全局导航守卫
 router.beforeEach((to) => {
+  //模拟beforeEnter
+  // if (to.query.payResult && to.query.payResult === 'false') return '/user/consult55'
+
   const store = useUser()
   //设置白名单
   const whiteList = ['/login']

@@ -1,10 +1,13 @@
 import type {
+  ConsultPrepay,
+  ConsultPrepayParams,
   DoctorPage,
   DoctorParams,
   FollowType,
   Image,
   KnowledgePage,
   KnowledgeParams,
+  PartialConsult,
   TopDep
 } from '@/types/consult'
 import { request } from '@/utils/request'
@@ -34,4 +37,23 @@ export const uploadImg = (file: File) => {
   const data = new FormData()
   data.append('file', file)
   return request<Image>('/upload', 'POST', data)
+}
+
+//预支付
+export const prePay = (item: ConsultPrepayParams) => {
+  return request<ConsultPrepay>('/patient/consult/order/pre', 'GET', item)
+}
+
+//发送患者信息订单返回订单id
+export const createConsultOrder = (patient: PartialConsult) => {
+  return request<{ id: string }>('/patient/consult/order', 'POST', patient)
+}
+
+//跳转支付页面
+export const getPayUrl = (params: {
+  paymentMethod: 1 | 0
+  orderId: string
+  payCallback: string
+}) => {
+  return request<{ payUrl: string }>('/patient/consult/pay', 'POST', params)
 }

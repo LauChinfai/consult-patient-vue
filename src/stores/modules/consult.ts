@@ -7,6 +7,9 @@ export const useConsultStore = defineStore(
   'cp-consult',
   () => {
     const consult = ref<PartialConsult>({})
+    //设置Id
+    const setId = (id: string) => (consult.value.id = id)
+
     // 设置问诊类型
     const setType = (type: ConsultType) => (consult.value.type = type)
     // 设置极速问诊类型

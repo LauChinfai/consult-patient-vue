@@ -135,6 +135,7 @@ const choose = (item: Patient) => {
 const next = () => {
   if (!selectedId.value) showToast('请选择患者')
   store.setPatient(selectedId.value)
+  console.log(selectedId.value)
   router.push('/consult/pay')
 }
 </script>
