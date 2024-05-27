@@ -13,6 +13,7 @@ import { ref } from 'vue'
 import { MsgType, OrderType } from '@/enum'
 import type { ConsultOrderItem } from '@/types/consult'
 import { getConsultOrderDetail } from '@/services/consult'
+import { nextTick } from 'vue'
 const store = useUser()
 const route = useRoute()
 
@@ -76,13 +77,23 @@ onMounted(() => {
 
   //监听订单状态变化 重新加载订单详情
   socket.on('statusChange', () => loadConsult())
+
+  //接收聊天消息
+  socket.on('receiveChatMsg', async (data) => {
+    list.value.push(data)
+    await nextTick()
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth'
+    })
+  })
 })
 onUnmounted(() => {
   //在销毁阶段主动断开通信
   socket.close()
 })
 
-//接收消息
+//发送消息
 const sendMsg = (a: string) => {
   socket.emit('sendChatMsg', {
     from: store.user?.id,
@@ -107,7 +118,7 @@ const sendMsg = (a: string) => {
       :item="item"
     ></room-message>
     <roomAction
-      :disabled="consult?.status == OrderType.ConsultChat"
+      :disabled="consult?.status !== OrderType.ConsultChat"
       @send-msg="sendMsg"
     ></roomAction>
   </div>
