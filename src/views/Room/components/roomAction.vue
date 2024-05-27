@@ -1,4 +1,20 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { OrderType } from '@/enum'
+import { ref, computed } from 'vue'
+
+const props = defineProps<{
+  disabled: boolean
+}>()
+const emit = defineEmits<{
+  (n: 'sendMsg', text: string): void
+}>()
+//文字内容
+const text = ref('')
+const sendMsg = () => {
+  emit('sendMsg', text.value)
+  text.value = ''
+}
+</script>
 
 <template>
   <div class="room-action">
@@ -8,9 +24,11 @@
       :border="false"
       placeholder="问医生"
       autocomplete="off"
-      :disabled="true"
+      :disabled="props.disabled"
+      v-model="text"
+      @keyup.enter="sendMsg"
     ></van-field>
-    <van-uploader :preview-image="false" :disabled="true">
+    <van-uploader :preview-image="false" :disabled="props.disabled">
       <cp-icon name="consult-img" />
     </van-uploader>
   </div>

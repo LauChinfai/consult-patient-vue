@@ -21,7 +21,7 @@ const clickLeft = () => {
   if (history.state?.back) {
     router.back()
   } else {
-    router.push('/')
+    router.push('/home')
   }
   console.log(history.state)
 }

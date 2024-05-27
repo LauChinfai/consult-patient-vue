@@ -10,9 +10,12 @@ import { useRoute } from 'vue-router'
 import { onUnmounted } from 'vue'
 import type { Message, TimeMessages } from '@/types/room'
 import { ref } from 'vue'
-import { MsgType } from '@/enum'
+import { MsgType, OrderType } from '@/enum'
+import type { ConsultOrderItem } from '@/types/consult'
+import { getConsultOrderDetail } from '@/services/consult'
 const store = useUser()
 const route = useRoute()
+
 //初始化io，建立socket通信
 //将socket提取到全局，因为在函数中声明只能在函数内部使用，这里使用到的函数包括两个钩子函数
 //声明类型Socket可以获得提示
@@ -21,7 +24,16 @@ let socket: Socket
 //消息列表
 const list = ref<Message[]>([])
 
+//订单详情
+const consult = ref<ConsultOrderItem>()
+const loadConsult = async () => {
+  console.log(route.query.orderId)
+  const res = await getConsultOrderDetail(route.query.orderId as string)
+  consult.value = res.data
+}
 onMounted(() => {
+  //初始化
+  loadConsult()
   //初始化连接    io('...',{auth:{token:'...'},query:{orderId:'...'}})
   socket = io(baseURL, {
     auth: {
@@ -45,6 +57,7 @@ onMounted(() => {
   })
   //接收历史聊天记录
   socket.on('chatMsgList', ({ data }: { data: TimeMessages[] }) => {
+    console.log(data)
     const arr: Message[] = []
     data.forEach((item) => {
       arr.push({
@@ -60,22 +73,43 @@ onMounted(() => {
     //消息往上追加
     list.value.unshift(...arr)
   })
+
+  //监听订单状态变化 重新加载订单详情
+  socket.on('statusChange', () => loadConsult())
 })
 onUnmounted(() => {
   //在销毁阶段主动断开通信
   socket.close()
 })
+
+//接收消息
+const sendMsg = (a: string) => {
+  socket.emit('sendChatMsg', {
+    from: store.user?.id,
+    to: consult.value?.docInfo?.id,
+    msgType: MsgType.MsgText,
+    msg: {
+      content: a
+    }
+  })
+}
 </script>
 <template>
   <div class="room-page">
     <cp-nav-bar title="问诊室"></cp-nav-bar>
-    <room-status></room-status>
+    <room-status
+      :status="consult?.status"
+      :countdown="consult?.countdown"
+    ></room-status>
     <room-message
       v-for="item in list"
       :key="item.id"
       :item="item"
     ></room-message>
-    <roomAction></roomAction>
+    <roomAction
+      :disabled="consult?.status == OrderType.ConsultChat"
+      @send-msg="sendMsg"
+    ></roomAction>
   </div>
 </template>
 <style scoped lang="scss">

@@ -1,4 +1,5 @@
 import type {
+  ConsultOrderItem,
   ConsultPrepay,
   ConsultPrepayParams,
   DoctorPage,
@@ -56,4 +57,11 @@ export const getPayUrl = (params: {
   payCallback: string
 }) => {
   return request<{ payUrl: string }>('/patient/consult/pay', 'POST', params)
+}
+
+//获取订单详情
+export const getConsultOrderDetail = (orderId: string) => {
+  return request<ConsultOrderItem>('/patient/consult/order/detail', 'GET', {
+    orderId
+  })
 }
