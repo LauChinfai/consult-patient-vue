@@ -106,7 +106,7 @@ const beforeClose = () => {
   })
     .then(() => {
       payId.value = ''
-      router.push('/user.consult')
+      router.push('/user/consult')
       return true
     })
     .catch(() => {
