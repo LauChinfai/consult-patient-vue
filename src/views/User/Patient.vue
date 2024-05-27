@@ -220,7 +220,13 @@ const next = () => {
       </van-action-bar>
     </van-popup>
     <!--  -->
-    <van-button class="next" block round type="primary" @click="next"
+    <van-button
+      class="next"
+      block
+      round
+      type="primary"
+      @click="next"
+      v-if="route.query.isChange"
       >下一步</van-button
     >
     <!--  -->

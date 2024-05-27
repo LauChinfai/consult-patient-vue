@@ -2,12 +2,79 @@
 import roomStatus from './components/roomStatus.vue'
 import roomAction from './components/roomAction.vue'
 import roomMessage from './components/roomMessage.vue'
+import io, { Socket } from 'socket.io-client'
+import { onMounted } from 'vue'
+import { baseURL } from '@/utils/request'
+import { useUser } from '@/stores'
+import { useRoute } from 'vue-router'
+import { onUnmounted } from 'vue'
+import type { Message, TimeMessages } from '@/types/room'
+import { ref } from 'vue'
+import { MsgType } from '@/enum'
+const store = useUser()
+const route = useRoute()
+//初始化io，建立socket通信
+//将socket提取到全局，因为在函数中声明只能在函数内部使用，这里使用到的函数包括两个钩子函数
+//声明类型Socket可以获得提示
+let socket: Socket
+
+//消息列表
+const list = ref<Message[]>([])
+
+onMounted(() => {
+  //初始化连接    io('...',{auth:{token:'...'},query:{orderId:'...'}})
+  socket = io(baseURL, {
+    auth: {
+      token: `Bearer ${store.user?.token}`
+    },
+    query: {
+      orderId: route.query.orderId
+    }
+  })
+  //监听connect事件，当连接成功时调用
+  socket.on('connect', () => {
+    console.log('连接成功')
+  })
+  //监听disconnect事件，当连接关闭时调用
+  socket.on('disconnect', () => {
+    console.log('连接关闭')
+  })
+  //监听error事件，当报错时调用
+  socket.on('error', (e) => {
+    console.log('发生错误', e)
+  })
+  //接收历史聊天记录
+  socket.on('chatMsgList', ({ data }: { data: TimeMessages[] }) => {
+    const arr: Message[] = []
+    data.forEach((item) => {
+      arr.push({
+        msgType: MsgType.Notify,
+        msg: {
+          content: item.createTime
+        },
+        createTime: item.createTime,
+        id: item.createTime
+      })
+      arr.push(...item.items)
+    })
+    //消息往上追加
+    list.value.unshift(...arr)
+  })
+})
+onUnmounted(() => {
+  //在销毁阶段主动断开通信
+  socket.close()
+})
 </script>
 <template>
   <div class="room-page">
     <cp-nav-bar title="问诊室"></cp-nav-bar>
     <room-status></room-status>
-    <room-message></room-message>
+    <room-message
+      v-for="item in list"
+      :key="item.id"
+      :item="item"
+    ></room-message>
     <roomAction></roomAction>
   </div>
 </template>

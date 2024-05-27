@@ -4,8 +4,9 @@ import { useUser } from '@/stores'
 import { showFailToast, showToast } from 'vant'
 import { useRoute } from 'vue-router'
 const route = useRoute()
+export const baseURL = 'https://consult-api.itheima.net/'
 const instance = axios.create({
-  baseURL: 'https://consult-api.itheima.net/',
+  baseURL,
   timeout: 1000
 })
 
