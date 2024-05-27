@@ -104,6 +104,17 @@ const sendMsg = (a: string) => {
     }
   })
 }
+//发送图片
+const sendImg = (img: any) => {
+  socket.emit('sendChatMsg', {
+    from: store.user?.id,
+    to: consult.value?.docInfo?.id,
+    msgType: MsgType.MsgImage,
+    msg: {
+      picture: img
+    }
+  })
+}
 </script>
 <template>
   <div class="room-page">
@@ -120,6 +131,7 @@ const sendMsg = (a: string) => {
     <roomAction
       :disabled="consult?.status !== OrderType.ConsultChat"
       @send-msg="sendMsg"
+      @send-img="sendImg"
     ></roomAction>
   </div>
 </template>
