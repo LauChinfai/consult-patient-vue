@@ -1,4 +1,12 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { getUnreadMessageCount } from '@/services/user'
+const unreadCount = ref<number>()
+onMounted(async () => {
+  const res = await getUnreadMessageCount()
+  unreadCount.value = res.data
+})
+</script>
 <template>
   <RouterView> </RouterView>
   <van-tabbar route>
@@ -17,7 +25,7 @@
         ></CpIcon>
       </template>
     </van-tabbar-item>
-    <van-tabbar-item to="/notify" icon="friends-o"
+    <van-tabbar-item to="/notify" icon="friends-o" :badge="unreadCount"
       >消息中心
       <template #icon="{ active }">
         <CpIcon :name="`home-notice-${active ? 'active' : 'default'}`"></CpIcon>

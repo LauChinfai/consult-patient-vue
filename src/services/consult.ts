@@ -65,3 +65,8 @@ export const getConsultOrderDetail = (orderId: string) => {
     orderId
   })
 }
+
+//获取处方图片
+export const getPrescriptionPic = (id: string) => {
+  return request<{ url: string }>(`/patient/consult/prescription/${id}`)
+}

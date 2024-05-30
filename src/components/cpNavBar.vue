@@ -23,7 +23,6 @@ const clickLeft = () => {
   } else {
     router.push('/home')
   }
-  console.log(history.state)
 }
 </script>
 <template>
