@@ -182,3 +182,15 @@ export type ConsultOrderItem = Consult & {
   /** 实付款 */
   actualPayment: number
 }
+
+// 评价功能接口参数类型定义
+export type ConsultOrderListParams = ParamsPage & {
+  type: ConsultType
+}
+
+//带分号问诊订单类型
+export type ConsultOrderPage = {
+  pageTotal: number
+  total: number
+  rows: ConsultOrderItem[]
+}

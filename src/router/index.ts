@@ -61,6 +61,13 @@ const router = createRouter({
         if (to.query.payResult === 'false') return '/user/consult'
       }
     },
+    // 问诊记录
+    {
+      path: '/user/consult',
+      component: () => import('@/views/User/ConsultPage.vue'),
+      meta: { title: '问诊记录' }
+    },
+
     {
       path: '/layout',
       component: () => import('@/views/Layout/index.vue'),

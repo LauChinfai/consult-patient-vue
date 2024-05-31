@@ -1,22 +1,40 @@
 <script setup lang="ts">
+import { evaluateConsultOrder } from '@/services/consult'
+import type { ConsultOrderItem } from '@/types/consult'
 import type { EvaluateDoc } from '@/types/room'
+import { showDialog, showToast } from 'vant'
+import { inject } from 'vue'
 import { computed } from 'vue'
 import { ref } from 'vue'
+import type { Ref } from 'vue'
 defineProps<{
   commentDetail?: EvaluateDoc
 }>()
+//接收传来的consult
+const consult = inject<Ref<ConsultOrderItem>>('consult')
+
+//接收传来的更新视图评价方法
+const changeEvaluate = inject<(score: number) => void>('changeEvaluate')
 
 //评价相关数据
 const rate = ref(0)
 const content = ref('')
 const isUnname = ref(false)
 
-const detail = computed(() => {
-  return { rate: rate.value, content: content.value, isUnname: isUnname.value }
-})
 //点击事件
-const sub = () => {
-  console.log(detail)
+const sub = async () => {
+  if (!rate.value) return showToast('请评分')
+  if (!content.value) return showToast('请填写评价')
+  if (consult?.value.docInfo?.id && consult.value.id) {
+    await evaluateConsultOrder({
+      score: rate.value,
+      content: content.value,
+      anonymousFlag: isUnname.value ? 1 : 0,
+      docId: consult?.value.docInfo?.id,
+      orderId: consult?.value.id
+    })
+    changeEvaluate && changeEvaluate(rate.value)
+  }
 }
 </script>
 

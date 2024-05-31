@@ -16,6 +16,7 @@ import { getConsultOrderDetail } from '@/services/consult'
 import { nextTick } from 'vue'
 import dayjs from 'dayjs'
 import { showToast } from 'vant'
+import { provide } from 'vue'
 const store = useUser()
 const route = useRoute()
 
@@ -144,7 +145,26 @@ const time = ref(dayjs().format('YYY-MM-DD HH:mm:ss'))
 const onRefresh = () => {
   socket.emit('getChatMsgList', 20, time.value, consult.value?.id)
 }
+
+//通过provide向evaluate组件传值令其可以提交评价请求
+provide('consult', consult)
+
+//子组件评价成功后视图未更新，会通过这里的socket拿到变化，所以需要提供更新视图的函数
+const changeEvaluate = (score: number) => {
+  //找到list中消息类型是评价列表的那一项
+  const item = list.value.find((item) => item.msgType === MsgType.CardEvaForm)
+  //类型守卫
+  if (item) {
+    //改变该数据的评价评分为传值评分
+    item.msg.evaluateDoc = { score }
+    //改变该消息的类型为已评价类型
+    item.msgType = MsgType.CardEva
+  }
+}
+//向子组件暴露该 函数，子组件传值调用
+provide('changeEvaluate', changeEvaluate)
 </script>
+
 <template>
   <div class="room-page">
     <cp-nav-bar title="问诊室"></cp-nav-bar>
