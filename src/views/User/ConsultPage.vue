@@ -7,14 +7,14 @@ import ConsultList from './components/ConsultList.vue'
   <div class="consult-page">
     <cp-nav-bar title="问诊记录" />
     <van-tabs sticky>
-      <van-tab title="极速问诊" :type="ConsultType.fast"
-        ><consult-list
+      <van-tab title="极速问诊"
+        ><consult-list :type="ConsultType.fast"
       /></van-tab>
-      <van-tab title="找医生" :type="ConsultType.doctor"
-        ><consult-list
+      <van-tab title="找医生"
+        ><consult-list :type="ConsultType.doctor"
       /></van-tab>
-      <van-tab title="开药问诊" :type="ConsultType.medication"
-        ><consult-list
+      <van-tab title="开药问诊"
+        ><consult-list :type="ConsultType.medication"
       /></van-tab>
     </van-tabs>
   </div>

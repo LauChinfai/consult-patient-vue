@@ -18,28 +18,34 @@ const finished = ref(false)
 
 //列表滑到底执行函数
 const load = () => {
-  console.log(1)
+  finished.value = true
 }
 
 //初始化请求数据
-const initParams: ConsultOrderListParams = {
+const initParams = ref<ConsultOrderListParams>({
   type: props.type,
   current: 1,
-  pageSize: 10
-}
+  pageSize: 5
+})
 
 //请求数据
-onMounted(async () => {
-  loading.value = true
-  const res = await getConsultOrderList(initParams)
+const onLoad = async () => {
+  const res = await getConsultOrderList(initParams.value)
   list.value.push(...res.data.rows)
-  if (initParams.current < res.data.pageTotal) {
-    initParams.current++
+  if (initParams.value.current < res.data.pageTotal) {
+    initParams.value.current++
   } else {
     finished.value = true
   }
   loading.value = false
-})
+}
+
+const delOrder = (id: string) => {
+  list.value.filter((item) => {
+    return item.id !== id
+  })
+  if (!list.value.length) onLoad()
+}
 </script>
 
 <template>
@@ -49,9 +55,14 @@ onMounted(async () => {
       :loading="loading"
       :finished="finished"
       finished-text="没有更多了..."
-      @load="load"
+      @load="onLoad"
     >
-      <consult-item v-for="item in list" :key="item.id" :item="item" />
+      <consult-item
+        v-for="item in list"
+        :key="item.id"
+        :item="item"
+        @delete-order="delOrder"
+      />
     </van-list>
   </div>
 </template>
