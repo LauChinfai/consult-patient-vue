@@ -1,54 +1,44 @@
-import type { CodeType, PatientList, User, UserInfo } from '@/types/user'
+import type {
+  CodeType,
+  Patient,
+  PatientList,
+  User,
+  UserInfo
+} from '@/types/user'
 import { request } from '@/utils/request'
-import type { Patient } from '@/types/user'
 
-//密码登录
-export const loginByPassword = (mobile: string, password: string) => {
-  return request<User>('/login/password', 'POST', { mobile, password })
-}
+// 密码登录
+export const loginByPassword = (mobile: string, password: string) =>
+  request<User>('login/password', 'POST', { mobile, password })
 
-//发送验证码
-export const sendMobileCode = (mobile: string, type: CodeType) => {
-  return request<User>('/code', 'GET', { mobile, type })
-}
+// 发送验证码
+export const sendMobileCode = (mobile: string, type: CodeType) =>
+  request('code', 'GET', { mobile, type })
 
-//验证码登录
+// 短信登录
+export const loginByMobile = (mobile: string, code: string) =>
+  request<User>('login', 'POST', { mobile, code })
 
-export const loginByCode = (mobile: string, code: string) => {
-  return request<User>('/login', 'POST', { mobile, code })
-}
+// 获取用户信息
+export const getUserInfo = () => request<UserInfo>('patient/myUser')
 
-//获取个人信息
-export const getUserInfo = () => {
-  return request<UserInfo>('/patient/myUser')
-}
+// 获取患者列表信息
+export const getPatientList = () => request<PatientList>('patient/mylist')
 
-//获取患者信息列表
-export const getPatientList = () => {
-  return request<PatientList>('/patient/mylist', 'GET')
-}
+// 添加患者
+export const addPatient = (patient: Patient) =>
+  request('patient/add', 'POST', patient)
 
-//添加患者
-export const addPatient = (patient: Patient) => {
-  return request('/patient/add', 'POST', patient)
-}
+// 编辑患者
+export const editPatient = (patient: Patient) =>
+  request('patient/update', 'PUT', patient)
 
-//编辑患者
-export const editPatient = (patient: Patient) => {
-  return request('/patient/update', 'PUT', patient)
-}
+// 删除患者
+export const delPatient = (id: string) => request(`patient/del/${id}`, 'DELETE')
 
-//删除患者
-export const delPatient = (id: string) => {
-  return request(`/patient/del/${id}`, 'DELETE')
-}
+// 患者详情
+export const getPatientDetail = (id: string) =>
+  request<Patient>(`patient/info/${id}`)
 
-//获取患者详情
-export const getPatientDetail = (id: string) => {
-  return request<Patient>(`/patient/info/${id}`)
-}
-
-//获取未读消息
-export const getUnreadMessageCount = () => {
-  return request<number>('patient/message/unRead/all')
-}
+export const getUnreadMessageCount = () =>
+  request<number>('patient/message/unRead/all')

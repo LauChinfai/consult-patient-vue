@@ -1,50 +1,51 @@
+import router from '@/router'
+import { useUserStore } from '@/stores'
 import axios, { AxiosError, type Method } from 'axios'
-import router from '@/router/index'
-import { useUser } from '@/stores'
-import { showFailToast, showToast } from 'vant'
-import { useRoute } from 'vue-router'
-const route = useRoute()
+import { showToast } from 'vant'
+
 export const baseURL = 'https://consult-api.itheima.net/'
 const instance = axios.create({
+  // 1. 基础地址，超时时间
   baseURL,
-  timeout: 1000
+  timeout: 10000
 })
 
 instance.interceptors.request.use(
   (config) => {
-    const store = useUser()
-    if (config.headers && store.user?.token) {
-      config.headers.Authorization = `Bearer ${store.user?.token}`
+    // 2. 携带token
+    const store = useUserStore()
+    if (store.user?.token && config.headers) {
+      config.headers.Authorization = `Bearer ${store.user.token}`
     }
     return config
   },
-  (err) => {
-    Promise.reject(err)
-  }
+  (err) => Promise.reject(err)
 )
 
 instance.interceptors.response.use(
   (res) => {
-    if (res.data?.code !== 10000) {
-      showToast('测试文本' || res.data?.message || `请求失败`)
-      Promise.reject(res.data)
+    // 3. 处理业务失败
+    if (res.data.code !== 10000) {
+      // 错误提示
+      showToast(res.data.message || '业务失败')
+      // 返回 错误的promise
+      return Promise.reject(res.data)
+      // 传入 code 将来catch的时候可以使用
     }
+    // 4. 摘取核心响应数据
     return res.data
   },
   (err: AxiosError) => {
-    //定义返回err类型为axiosError可以得到完整提示
-    //如果err.response.status === 401
-    //清空本地user
-    //跳转页面到router,并且携带当前路由地址为参数，以便于登录后返回失效前的操作地址
+    // 5. 处理401错误
     if (err.response?.status === 401) {
-      const store = useUser()
+      // 清除本地的用户信息
+      const store = useUserStore()
       store.delUser()
+      // 跳转到登录页面，携带当前访问页面的地址（包含参数的）
       router.push({
         path: '/login',
-        query: { returnURL: router.currentRoute.value.fullPath }
+        query: { returnUrl: router.currentRoute.value.fullPath }
       })
-      console.log(route.query.returnURL)
-      showFailToast('登录已过期')
     }
     return Promise.reject(err)
   }
@@ -52,24 +53,22 @@ instance.interceptors.response.use(
 
 export default instance
 
-//定义自定义类型Data
 type Data<T> = {
-  code: string
+  code: number
   message: string
   data: T
 }
 
-//定义工具函数
 export const request = <T>(
   url: string,
-  method?: Method = 'GET',
-  sendObj?: Object
+  method: Method = 'GET',
+  submitData?: object
 ) => {
-  //自定义数据类型，因为本来axios的request是返回的自带axios类型的res,但是上面修改了返回的是res.data，所以这里的第一个泛型参数必须是any
+  // 参数：地址，请求方式，提交的数据
+  // 返回：promise
   return instance.request<any, Data<T>>({
     url,
-    method: method.toUpperCase(),
-    //动态属性，如果传来的method大写后是get，则为params,如果不是则为data
-    [method.toUpperCase() === 'GET' ? 'params' : 'data']: sendObj
+    method,
+    [method.toUpperCase() === 'GET' ? 'params' : 'data']: submitData
   })
 }

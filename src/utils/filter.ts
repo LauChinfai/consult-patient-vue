@@ -1,10 +1,9 @@
-import { timeOptions, flagOptions } from '@/services/constants'
+import type { IllnessTime } from '@/enums'
+import { flagOptions, timeOptions } from '@/services/constants'
 
-//过滤，获取得病时间的文本
-export const getIllnessTimeText = (time: number) => {
-  return timeOptions.find((item) => item.value === time)?.label
-}
-
-//获取是否就诊
-export const getConsultFlagText = (flag: number) =>
-  flagOptions.find((i) => i.value === flag)?.label
+// 获取患病时间
+export const getIllnessTimeText = (time: IllnessTime) =>
+  timeOptions.find((item) => item.value === time)?.label
+// 获取是否就诊
+export const getConsultFlagText = (flag: 0 | 1) =>
+  flagOptions.find((item) => item.value === flag)?.label

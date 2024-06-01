@@ -1,119 +1,110 @@
 <script setup lang="ts">
-import { formRules } from '@/utils/formRules'
-import { showToast, type FormInstance } from 'vant'
-import { ref } from 'vue'
-import { loginByCode, loginByPassword } from '@/services/user'
-import { useUser } from '@/stores'
+import { ref, onUnmounted } from 'vue'
+import { mobileRules, passwordRules, codeRules } from '@/utils/rules'
+import { showSuccessToast, showToast, type FormInstance } from 'vant'
+import { loginByPassword, sendMobileCode, loginByMobile } from '@/services/user'
+import { useUserStore } from '@/stores'
 import { useRoute, useRouter } from 'vue-router'
-import { codeRule } from '@/utils/formRules'
-import { sendMobileCode } from '@/services/user'
-import { onMounted } from 'vue'
-const router = useRouter()
-const route = useRoute()
 
-//登录模块表单校验
 const mobile = ref('')
 const password = ref('')
 const agree = ref(false)
 
-//表单提交
-const formSubmit = async () => {
+const store = useUserStore()
+const router = useRouter()
+const route = useRoute()
+const onSubmit = async () => {
   if (!agree.value) return showToast('请勾选协议')
+  // 进行登录(合并短信登录)
   const res = isPass.value
     ? await loginByPassword(mobile.value, password.value)
-    : await loginByCode(mobile.value, code.value)
-  console.log(res)
-  //登录成功后将信息存储在本地
-  const store = useUser()
+    : await loginByMobile(mobile.value, code.value)
   store.setUser(res.data)
-  //判断路由是否传参
-  router.push((route.query.returnURL as string) || '/user')
-  showToast('登陆成功')
+  showSuccessToast('登录成功')
+  router.replace((route.query.returnUrl as string) || '/user')
 }
 
-//短信登录
+// 短信登录界面切换
 const isPass = ref(true)
 const code = ref('')
+
+// 发送短信验证码
+const time = ref(0)
 const form = ref<FormInstance>()
 let timer: number
-//发送短信验证码
-const time = ref(0)
 const onSend = async () => {
+  // 验证：倒计时 手机号
   if (time.value > 0) return
   await form.value?.validate('mobile')
   await sendMobileCode(mobile.value, 'login')
   showToast('发送成功')
-  time.value = 5
-  //开启倒计时
+  time.value = 60
+  // 开启倒计时
   if (timer) clearInterval(timer)
   timer = setInterval(() => {
     time.value--
-    if (time.value <= 0) {
-      clearInterval(timer)
-    }
+    if (time.value <= 0) clearInterval(timer)
   }, 1000)
 }
 
-//定义密码显示
-const passShow = ref(false)
-
-onMounted(() => {
+onUnmounted(() => {
   clearInterval(timer)
 })
+
+// 密码的可见与不可见
+const isShow = ref(false)
 </script>
 
 <template>
   <div class="login-page">
-    <cpNavBar
-      rightText="注册"
+    <cp-nav-bar
+      right-text="注册"
       @click-right="$router.push('/register')"
-    ></cpNavBar>
+    ></cp-nav-bar>
     <!-- 头部 -->
     <div class="login-head">
-      <h3>{{ isPass ? '密码登录' : '短信登录' }}</h3>
-      <a href="javascript:;" @click="isPass = !isPass">
-        <span>{{ isPass ? '短信验证码登录' : '使用密码登录' }}</span>
+      <h3>{{ isPass ? '密码登录' : '短信验证码登录' }}</h3>
+      <a href="javascript:;">
+        <span @click="isPass = !isPass">
+          {{ isPass ? '短信验证码登录' : '密码登录' }}
+        </span>
         <van-icon name="arrow"></van-icon>
       </a>
     </div>
     <!-- 表单 -->
-    <van-form autocomplete="off" @submit="formSubmit" ref="form">
+    <van-form autocomplete="off" @submit="onSubmit" ref="form">
       <van-field
         name="mobile"
+        v-model="mobile"
+        :rules="mobileRules"
         placeholder="请输入手机号"
         type="tel"
-        v-model="mobile"
-        :rules="formRules.mobile"
       ></van-field>
       <van-field
         v-if="isPass"
-        placeholder="请输入密码"
-        :type="passShow ? 'text' : 'password'"
         v-model="password"
-        :rules="formRules.password"
+        :rules="passwordRules"
+        placeholder="请输入密码"
+        :type="isShow ? 'text' : 'password'"
       >
         <template #button>
-          <Cp-Icon
-            :name="passShow ? 'login-eye-on' : 'login-eye-off'"
-            @click="passShow = !passShow"
-            class="cpIcon"
-          ></Cp-Icon>
+          <cp-icon
+            :name="`login-eye-${isShow ? 'on' : 'off'}`"
+            @click="isShow = !isShow"
+            style="margin-right: 10px"
+          ></cp-icon>
         </template>
       </van-field>
-      <!-- 短信登录 -->
       <van-field
         v-else
-        placeholder="请输入验证码"
+        :rules="codeRules"
+        placeholder="短信验证码"
         v-model="code"
-        :rules="codeRule"
       >
         <template #button>
-          <span
-            class="btn-send"
-            :class="{ active: time > 0 }"
-            @click="onSend"
-            >{{ time === 0 ? '发送验证码' : time }}</span
-          >
+          <span class="btn-send" :class="{ active: time > 0 }" @click="onSend">
+            {{ time > 0 ? `${time}s后再次发送` : '发送验证码' }}
+          </span>
         </template>
       </van-field>
       <div class="cp-cell">
@@ -125,15 +116,14 @@ onMounted(() => {
         </van-checkbox>
       </div>
       <div class="cp-cell">
-        <van-button block round type="primary" nativeType="submit"
-          >登 录</van-button
-        >
+        <van-button native-type="submit" block round type="primary">
+          登 录
+        </van-button>
       </div>
       <div class="cp-cell">
         <a href="javascript:;">忘记密码？</a>
       </div>
     </van-form>
-
     <!-- 底部 -->
     <div class="login-other">
       <van-divider>第三方登录</van-divider>
@@ -145,11 +135,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-:deep() {
-  .cpIcon {
-    margin-right: 10px;
-  }
-}
 .login {
   &-page {
     padding-top: 46px;

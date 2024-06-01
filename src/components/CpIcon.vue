@@ -1,15 +1,17 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 defineProps<{
   name: string
 }>()
 </script>
+
 <template>
-  <svg aria-hidden="true" class="cpIcon">
-    <use :href="`#icon-${name}`"></use>
+  <svg aria-hidden="true" class="cp-icon">
+    <use :href="`#icon-${name}`" />
   </svg>
 </template>
-<style scoped lang="scss">
-.cpIcon {
+
+<style lang="scss" scoped>
+.cp-icon {
   width: 1em;
   height: 1em;
 }

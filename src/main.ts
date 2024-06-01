@@ -1,17 +1,14 @@
 import { createApp } from 'vue'
 
-//仓库独立管理
-import pinia from '@/stores'
-
 import App from './App.vue'
+import pinia from './stores'
 import router from './router'
-//SVG地图
-import 'virtual:svg-icons-register'
 
-//导入样式包
+// 在main.css之前引入，后面需要去覆盖vant
 import 'vant/lib/index.css'
-//引入vant全局样式包要在自定义全局样式包之前，使得自定义样式包可以覆盖vant的全局样式包
-import '@/styles/main.scss'
+import './styles/main.scss'
+
+import 'virtual:svg-icons-register'
 
 const app = createApp(App)
 

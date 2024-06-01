@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import knowledgeList from './components/knowledgeList.vue'
-import doctorCard from './components/FollowDoctor.vue'
+import KnowledgeList from './components/KnowledgeList.vue'
+import FollowDoctor from './components/FollowDoctor.vue'
 import { useConsultStore } from '@/stores'
-import { ConsultType } from '@/enum'
+import { ConsultType } from '@/enums'
+
 const active = ref(1)
 
 const store = useConsultStore()
@@ -34,7 +35,7 @@ const store = useConsultStore()
           <router-link
             to="/consult/fast"
             class="nav"
-            @click="store.setType(ConsultType.fast)"
+            @click="store.setType(ConsultType.Fast)"
           >
             <cp-icon name="home-graphic"></cp-icon>
             <p class="title">极速问诊</p>
@@ -87,20 +88,20 @@ const store = useConsultStore()
         </van-swipe-item>
       </van-swipe>
     </div>
-    <!-- tabBars -->
+    <!-- TAB -->
     <van-tabs shrink sticky v-model:active="active">
       <van-tab title="关注">
-        <doctorCard></doctorCard>
-        <knowledge-list type="like"> </knowledge-list>
+        <follow-doctor></follow-doctor>
+        <knowledge-list type="like" />
       </van-tab>
       <van-tab title="推荐">
-        <knowledge-list type="recommend"></knowledge-list>
+        <knowledge-list type="recommend" />
       </van-tab>
       <van-tab title="减脂">
-        <knowledge-list type="fatReduction"></knowledge-list>
+        <knowledge-list type="fatReduction" />
       </van-tab>
       <van-tab title="饮食">
-        <knowledge-list type="food"></knowledge-list>
+        <knowledge-list type="food" />
       </van-tab>
     </van-tabs>
   </div>

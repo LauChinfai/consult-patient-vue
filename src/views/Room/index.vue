@@ -1,47 +1,44 @@
 <script setup lang="ts">
-import roomStatus from './components/roomStatus.vue'
-import roomAction from './components/roomAction.vue'
-import roomMessage from './components/roomMessage.vue'
+import RoomStatus from './components/RoomStatus.vue'
+import RoomAction from './components/RoomAction.vue'
+import RoomMessage from './components/RoomMessage.vue'
 import io, { Socket } from 'socket.io-client'
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { baseURL } from '@/utils/request'
-import { useUser } from '@/stores'
+import { useUserStore } from '@/stores'
 import { useRoute } from 'vue-router'
-import { onUnmounted } from 'vue'
 import type { Message, TimeMessages } from '@/types/room'
-import { ref } from 'vue'
-import { MsgType, OrderType } from '@/enum'
-import type { ConsultOrderItem } from '@/types/consult'
+import { MsgType, OrderType } from '@/enums'
+import { ref, nextTick, provide } from 'vue'
+import type { ConsultOrderItem, Image } from '@/types/consult'
 import { getConsultOrderDetail } from '@/services/consult'
-import { nextTick } from 'vue'
 import dayjs from 'dayjs'
 import { showToast } from 'vant'
-import { provide } from 'vue'
-const store = useUser()
-const route = useRoute()
 
-//判断是否初始化消息
-const initialMsg = ref(true)
-
-//初始化io，建立socket通信
-//将socket提取到全局，因为在函数中声明只能在函数内部使用，这里使用到的函数包括两个钩子函数
-//声明类型Socket可以获得提示
-let socket: Socket
-
-//消息列表
-const list = ref<Message[]>([])
-
-//订单详情
 const consult = ref<ConsultOrderItem>()
 const loadConsult = async () => {
-  console.log(route.query.orderId)
   const res = await getConsultOrderDetail(route.query.orderId as string)
   consult.value = res.data
 }
+
+// 提供问诊订单数据给后代组件
+provide('consult', consult)
+const completeEva = (score: number) => {
+  const item = list.value.find((item) => item.msgType === MsgType.CardEvaForm)
+  if (item) {
+    item.msg.evaluateDoc = { score }
+    item.msgType = MsgType.CardEva
+  }
+}
+provide('completeEva', completeEva)
+
+const store = useUserStore()
+const route = useRoute()
+const list = ref<Message[]>([])
+const initialMsg = ref(true)
+let socket: Socket
 onMounted(() => {
-  //初始化
   loadConsult()
-  //初始化连接    io('...',{auth:{token:'...'},query:{orderId:'...'}})
   socket = io(baseURL, {
     auth: {
       token: `Bearer ${store.user?.token}`
@@ -50,23 +47,22 @@ onMounted(() => {
       orderId: route.query.orderId
     }
   })
-  //监听connect事件，当连接成功时调用
   socket.on('connect', () => {
     console.log('连接成功')
   })
-  //监听disconnect事件，当连接关闭时调用
   socket.on('disconnect', () => {
     console.log('连接关闭')
   })
-  //监听error事件，当报错时调用
-  socket.on('error', (e) => {
-    console.log('发生错误', e)
+  socket.on('error', () => {
+    console.log('发生错误')
   })
-  //接收历史聊天记录
-  socket.on('chatMsgList', async ({ data }: { data: TimeMessages[] }) => {
-    console.log(data)
+
+  // 获取聊天记录，如果是第一次（默认消息）
+  socket.on('chatMsgList', ({ data }: { data: TimeMessages[] }) => {
+    // data 数据 ===> [ {createTime}, ...items ]
     const arr: Message[] = []
     data.forEach((item, i) => {
+      // 记录每一段消息中最早的消息时间，获取聊天记录需要使用
       if (i === 0) time.value = item.createTime
       arr.push({
         msgType: MsgType.Notify,
@@ -78,115 +74,92 @@ onMounted(() => {
       })
       arr.push(...item.items)
     })
-    //消息往上追加
     list.value.unshift(...arr)
 
-    //
     loading.value = false
-    if (!arr.length) return showToast('没有更多了...')
-    //如果是第一次获取消息那么就滚动到最新（最下层）
+    if (!arr.length) return showToast('没有更多聊天记录了')
+
     if (initialMsg.value) {
-      //外部点进来就让消息已读
       socket.emit('updateMsgStatus', arr[arr.length - 1].id)
-      await nextTick()
-      window.scrollTo({
-        top: document.body.scrollHeight
+      // 第一次需要滚动到最新的消息
+      nextTick(() => {
+        window.scrollTo(0, document.body.scrollHeight)
+        initialMsg.value = false
       })
-      initialMsg.value = false
     }
   })
-
-  //监听订单状态变化 重新加载订单详情
+  // 监听订单状态变化
   socket.on('statusChange', () => loadConsult())
-
-  //接收聊天消息
-  socket.on('receiveChatMsg', async (data) => {
-    //聊天时，收一条读一条
-    socket.emit('updateMsgStatus', data.id)
-    list.value.push(data)
+  // 接收聊天消息
+  socket.on('receiveChatMsg', async (event) => {
+    socket.emit('updateMsgStatus', event.id)
+    list.value.push(event)
     await nextTick()
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: 'smooth'
-    })
+    window.scrollTo(0, document.body.scrollHeight)
   })
 })
 onUnmounted(() => {
-  //在销毁阶段主动断开通信
   socket.close()
 })
 
-//发送消息
-const sendMsg = (a: string) => {
+// 发送文字信息
+const onSendText = (text: string) => {
   socket.emit('sendChatMsg', {
     from: store.user?.id,
     to: consult.value?.docInfo?.id,
     msgType: MsgType.MsgText,
     msg: {
-      content: a
+      content: text
     }
   })
 }
-//发送图片
-const sendImg = (img: any) => {
+
+// 发送图片信息
+const onSendImage = (image: Image) => {
   socket.emit('sendChatMsg', {
     from: store.user?.id,
     to: consult.value?.docInfo?.id,
     msgType: MsgType.MsgImage,
     msg: {
-      picture: img
+      picture: image
     }
   })
 }
 
-//下拉刷新
+// 下拉刷新
 const loading = ref(false)
-const time = ref(dayjs().format('YYY-MM-DD HH:mm:ss'))
+const time = ref(dayjs().format('YYYY-MM-DD HH:mm:ss'))
 const onRefresh = () => {
   socket.emit('getChatMsgList', 20, time.value, consult.value?.id)
 }
-
-//通过provide向evaluate组件传值令其可以提交评价请求
-provide('consult', consult)
-
-//子组件评价成功后视图未更新，会通过这里的socket拿到变化，所以需要提供更新视图的函数
-const changeEvaluate = (score: number) => {
-  //找到list中消息类型是评价列表的那一项
-  const item = list.value.find((item) => item.msgType === MsgType.CardEvaForm)
-  //类型守卫
-  if (item) {
-    //改变该数据的评价评分为传值评分
-    item.msg.evaluateDoc = { score }
-    //改变该消息的类型为已评价类型
-    item.msgType = MsgType.CardEva
-  }
-}
-//向子组件暴露该 函数，子组件传值调用
-provide('changeEvaluate', changeEvaluate)
 </script>
 
 <template>
   <div class="room-page">
     <cp-nav-bar title="问诊室"></cp-nav-bar>
+    <!-- 状态栏 -->
     <room-status
       :status="consult?.status"
       :countdown="consult?.countdown"
     ></room-status>
     <van-pull-refresh v-model="loading" @refresh="onRefresh">
+      <!-- 消息 -->
       <room-message
         v-for="item in list"
         :key="item.id"
         :item="item"
       ></room-message>
     </van-pull-refresh>
-    <roomAction
+    <!-- 操作栏 -->
+    <room-action
+      @send-text="onSendText"
+      @send-image="onSendImage"
       :disabled="consult?.status !== OrderType.ConsultChat"
-      @send-msg="sendMsg"
-      @send-img="sendImg"
-    ></roomAction>
+    ></room-action>
   </div>
 </template>
-<style scoped lang="scss">
+
+<style lang="scss" scoped>
 .room-page {
   padding-top: 90px;
   padding-bottom: 60px;

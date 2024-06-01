@@ -1,12 +1,17 @@
 export type User = {
+  /** token令牌 */
   token: string
+  /** 用户ID */
   id: string
+  /** 用户名称 */
   account: string
+  /** 手机号 */
   mobile: string
+  /** 头像 */
   avatar: string
 }
 
-//定义验证码类型   login登录register注册 changeMobile修改密码  forgetPassword 找回密码 bindMobile绑定第三方登录
+// login登录register注册changeMobile更换手机号forgetPassword找回密码,bindMobile绑定三方登录
 export type CodeType =
   | 'login'
   | 'register'
@@ -14,23 +19,39 @@ export type CodeType =
   | 'forgetPassword'
   | 'bindMobile'
 
-//定义个人中心返回值
 type OmitUser = Omit<User, 'token'>
-
 export type UserInfo = OmitUser & {
+  /** 关注 */
   likeNumber: number
-  collectionNumber: string
+  /** 收藏 */
+  collectionNumber: number
+  /** 积分 */
   score: number
+  /** 优惠券 */
   couponNumber: number
   orderInfo: {
+    /** 待付款 */
     paidNumber: number
+    /** 待发货 */
     receivedNumber: number
+    /** 待收货 */
     shippedNumber: number
+    /** 已完成 */
     finishedNumber: number
   }
 }
 
-//获取患者信息
+// Omit Pick TS的内置类型
+// type Person = {
+//   name: string
+//   age: number
+//   gender: 0 | 1
+// }
+// // Omit 是从对象中排出一些属性，得到对象类型
+// type OmitPerson = Omit<Person, 'age' | 'gender'>
+// // Pick 是从对象中摘取一些属性，得到对象类型
+// type PickPerson = Pick<Person, 'gender' | 'age'>
+
 // 家庭档案-患者信息
 export type Patient = {
   /** 患者ID */

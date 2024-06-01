@@ -1,42 +1,30 @@
 <script setup lang="ts">
-import { MsgType } from '@/enum'
-import type { Message } from '@/types/room'
-import { timeOptions, flagOptions } from '@/services/constants'
+import { useShowPrescription } from '@/composables'
+import { MsgType } from '@/enums'
+import { useUserStore } from '@/stores'
 import type { Image } from '@/types/consult'
-import { showImagePreview, showToast } from 'vant'
-import { useUser } from '@/stores'
+import type { Message } from '@/types/room'
+import { getConsultFlagText, getIllnessTimeText } from '@/utils/filter'
 import dayjs from 'dayjs'
-import { getPrescriptionPic } from '@/services/consult'
-import comment from './comment.vue'
-import { showPre } from '@/composables'
+import { showImagePreview, showToast } from 'vant'
+import EvaluateCard from './EvaluateCard.vue'
+
 defineProps<{
   item: Message
 }>()
-const store = useUser()
-//获取患病时间
-const getIllnessTimeText = (time: number) =>
-  timeOptions.find((i) => i.value === time)?.label
-//获取是否就诊
-const getConsultFlagText = (flag: number) =>
-  flagOptions.find((i) => i.value === flag)?.label
-//预览图片
+
+// 预览图片
 const onPreviewImage = (images?: Image[]) => {
-  if (images && images.length) {
-    //vant提供的预览图片数组方法 ，只用传url
-    showImagePreview(
-      images.map((item) => {
-        return item.url
-      })
-    )
-  } else showToast('暂无图片')
+  if (images && images.length) showImagePreview(images.map((item) => item.url))
+  else showToast('暂无图片')
 }
 
-const formatTime = (time: string) => {
-  return dayjs(time).format('HH:mm')
-}
+const store = useUserStore()
 
-//查看处方
-const { onShowPre } = showPre()
+const formatTime = (time: string) => dayjs(time).format('HH:mm')
+
+// 查看处方
+const { onShowPrescription } = useShowPrescription()
 </script>
 
 <template>
@@ -136,12 +124,13 @@ const { onShowPre } = showPre()
       <div class="head van-hairline--bottom">
         <div class="head-tit">
           <h3>电子处方</h3>
-          <p @click="onShowPre(item.msg.prescription.id)">
+          <p @click="onShowPrescription(item.msg.prescription?.id)">
             原始处方 <van-icon name="arrow"></van-icon>
           </p>
         </div>
         <p>
-          {{ item.msg.prescription.name }} {{ item.msg.prescription?.gender }}
+          {{ item.msg.prescription.name }}
+          {{ item.msg.prescription.genderValue }}
           {{ item.msg.prescription.age }}岁
           {{ item.msg.prescription.diagnosis }}
         </p>
@@ -170,7 +159,7 @@ const { onShowPre } = showPre()
       item.msgType === MsgType.CardEva || item.msgType === MsgType.CardEvaForm
     "
   >
-    <comment :commentDetail="item.msg.evaluateDoc"></comment>
+    <evaluate-card :evaluateDoc="item.msg.evaluateDoc"></evaluate-card>
   </div>
 </template>
 

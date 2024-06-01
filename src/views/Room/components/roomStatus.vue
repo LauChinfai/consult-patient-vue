@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { OrderType } from '@/enum'
+import { OrderType } from '@/enums'
 
 defineProps<{
   status?: OrderType
@@ -14,12 +14,9 @@ defineProps<{
     </div>
     <div v-if="status === OrderType.ConsultChat" class="chat">
       <span>咨询中</span>
-      <span
-        >剩余时间：<van-count-down
-          v-if="countdown"
-          :time="countdown * 1000"
-        ></van-count-down
-      ></span>
+      <span>
+        剩余时间：<van-count-down v-if="countdown" :time="countdown * 1000" />
+      </span>
     </div>
     <div
       v-if="

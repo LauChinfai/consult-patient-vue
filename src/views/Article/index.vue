@@ -1,3 +1,7 @@
 <script setup lang="ts"></script>
-<template>article</template>
+
+<template>
+  <div class="article-page">article</div>
+</template>
+
 <style lang="scss" scoped></style>

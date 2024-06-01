@@ -1,46 +1,29 @@
 <script setup lang="ts">
 import DoctorCard from './DoctorCard.vue'
-import { ref, onMounted, onUnmounted } from 'vue'
 import { useWindowSize } from '@vueuse/core'
-import type { DoctorParams, Doctor } from '@/types/consult'
-import { getDoctorList } from '@/services/consult'
-//ToDo使用 VueUse库实现组件内适配
-//从useWindowSize的实例中解构出width
+import type { DoctorList } from '@/types/consult'
+import { ref, onMounted } from 'vue'
+import { getDoctorPage } from '@/services/consult'
+
 const { width } = useWindowSize()
-//
-//
-// //原生实现适配
-// const width = ref(0) //设置响应式宽度
-// const setWidth = () => {
-//   width.value = window.innerWidth //将屏幕宽度赋值给width
-// }
+
+// 组件初始化获取设备宽度，页面尺寸发生改变获取设备的宽度
+// import { ref, onMounted, onUnmounted } from 'vue'
+// const width = ref(0)
+// const setWidth = () => (width.value = window.innerWidth)
 // onMounted(() => {
-//   setWidth() //加载后赋值width
-//   window.addEventListener('resize', setWidth) //屏幕改变时重新赋值
+//   setWidth()
+//   window.addEventListener('resize', setWidth)
 // })
 // onUnmounted(() => {
-//   window.removeEventListener('resize', setWidth) //解绑事件，避免性能消耗
+//   window.removeEventListener('resize', setWidth)
 // })
-// //原生适配
-//
-//
-//
-
-//保存res.data.rows
-const doctorList = ref<Doctor[]>([])
-//定义初始化查询参数
-const initDoctor: DoctorParams = {
-  current: 1,
-  pageSize: 5
+const list = ref<DoctorList>([])
+const loadData = async () => {
+  const res = await getDoctorPage({ current: 1, pageSize: 5 })
+  list.value = res.data.rows
 }
-//触发渲染函数
-const getNew = async () => {
-  const res = await getDoctorList(initDoctor)
-  doctorList.value = res.data.rows
-}
-onMounted(() => {
-  getNew()
-})
+onMounted(() => loadData())
 </script>
 
 <template>
@@ -56,8 +39,8 @@ onMounted(() => {
         :showIndicators="false"
         :loop="false"
       >
-        <van-swipe-item v-for="item in 5" :key="item">
-          <doctor-card :doctorList="doctorList"></doctor-card>
+        <van-swipe-item v-for="item in list" :key="item.id">
+          <doctor-card :item="item"></doctor-card>
         </van-swipe-item>
       </van-swipe>
     </div>

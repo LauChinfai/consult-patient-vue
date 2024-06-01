@@ -1,3 +1,7 @@
 <script setup lang="ts"></script>
-<template>Notify</template>
-<style scoped lang="scss"></style>
+
+<template>
+  <div class="notify-page">notify</div>
+</template>
+
+<style lang="scss" scoped></style>

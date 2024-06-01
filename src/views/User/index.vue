@@ -1,32 +1,37 @@
 <script setup lang="ts">
 import { getUserInfo } from '@/services/user'
-import { useUser } from '@/stores'
+import { useUserStore } from '@/stores'
 import type { UserInfo } from '@/types/user'
 import { showConfirmDialog } from 'vant'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-const userInfo = ref<UserInfo>()
+
+const user = ref<UserInfo>()
+
 onMounted(async () => {
-  userInfo.value = (await getUserInfo()).data
+  const res = await getUserInfo()
+  user.value = res.data
 })
-//选项数据
-const options = [
+
+// 初始化快捷工具
+const tools = [
   { label: '我的问诊', path: '/user/consult' },
   { label: '我的处方', path: '/' },
   { label: '家庭档案', path: '/user/patient' },
-  { label: '地址管理', path: '/user/address' },
+  { label: '地址管理', path: '/' },
   { label: '我的评价', path: '/' },
   { label: '官方客服', path: '/' },
   { label: '设置', path: '/' }
 ]
-//退出登录
-const store = useUser()
+// 退出
+const store = useUserStore()
 const router = useRouter()
-const loginOut = async () => {
+const onLogout = async () => {
   await showConfirmDialog({
-    title: '退出',
-    message: '确认退出登录吗？'
+    title: '温馨提示',
+    message: '您是否确认退出优医问诊？'
   })
+  // 点击的确认
   store.delUser()
   router.push('/login')
 }
@@ -36,30 +41,27 @@ const loginOut = async () => {
   <div class="user-page">
     <div class="user-page-head">
       <div class="top">
-        <van-image round fit="cover" :src="userInfo?.avatar" />
+        <van-image round fit="cover" :src="user?.avatar" />
         <div class="name">
-          <p>{{ userInfo?.account }}</p>
+          <p>{{ user?.account }}</p>
           <p><van-icon name="edit" /></p>
         </div>
       </div>
       <van-row>
         <van-col span="6">
-          <p>{{ userInfo?.collectionNumber }}</p>
+          <p>{{ user?.collectionNumber }}</p>
           <p>收藏</p>
         </van-col>
-
         <van-col span="6">
-          <p>{{ userInfo?.likeNumber }}</p>
+          <p>{{ user?.likeNumber }}</p>
           <p>关注</p>
         </van-col>
-
         <van-col span="6">
-          <p>{{ userInfo?.score }}</p>
+          <p>{{ user?.score }}</p>
           <p>积分</p>
         </van-col>
-
         <van-col span="6">
-          <p>{{ userInfo?.couponNumber }}</p>
+          <p>{{ user?.couponNumber }}</p>
           <p>优惠券</p>
         </van-col>
       </van-row>
@@ -73,54 +75,47 @@ const loginOut = async () => {
       </div>
       <van-row>
         <van-col span="6">
-          <van-badge :content="userInfo?.orderInfo.paidNumber || ''">
+          <van-badge :content="user?.orderInfo.paidNumber || ''">
             <cp-icon name="user-paid" />
           </van-badge>
           <p>待付款</p>
         </van-col>
-
         <van-col span="6">
-          <van-badge :content="userInfo?.orderInfo.receivedNumber || ''">
+          <van-badge :content="user?.orderInfo.receivedNumber || ''">
             <cp-icon name="user-shipped" />
           </van-badge>
           <p>待发货</p>
         </van-col>
-
         <van-col span="6">
-          <van-badge :content="userInfo?.orderInfo.shippedNumber || ''">
+          <van-badge :content="user?.orderInfo.shippedNumber || ''">
             <cp-icon name="user-received" />
           </van-badge>
           <p>待收货</p>
         </van-col>
-
         <van-col span="6">
-          <van-badge :content="userInfo?.orderInfo.finishedNumber || ''">
+          <van-badge :content="user?.orderInfo.finishedNumber || ''">
             <cp-icon name="user-finished" />
           </van-badge>
           <p>已完成</p>
         </van-col>
       </van-row>
-
-      <!-- 选项 -->
-      <div class="user-page-group">
-        <h3>快捷工具</h3>
-        <van-cell
-          v-for="(item, index) in options"
-          :key="item.label"
-          :title="item.label"
-          is-link
-          :border="false"
-          @click="router.push(`${item.path}`)"
-        >
-          <template #icon
-            ><cp-icon :name="`user-tool-0${index + 1}`"
-          /></template>
-        </van-cell>
-      </div>
     </div>
-    <div class="logOutByme">
-      <a href="javascript:;" @click="loginOut">退出登录</a>
+    <!-- 快捷工具 -->
+    <div class="user-page-group">
+      <h3>快捷工具</h3>
+      <van-cell
+        v-for="(item, i) in tools"
+        :key="item.label"
+        :title="item.label"
+        :to="item.path"
+        is-link
+        :border="false"
+      >
+        <template #icon><cp-icon :name="`user-tool-0${i + 1}`" /></template>
+      </van-cell>
     </div>
+    <!-- 退出登录 -->
+    <a href="javascript:;" class="logout" @click="onLogout">退出登录</a>
   </div>
 </template>
 
@@ -200,14 +195,13 @@ const loginOut = async () => {
         font-size: 28px;
       }
       p {
-        font-size: 12px;
         padding-top: 4px;
+        font-size: 12px;
       }
     }
   }
   // 分组
   &-group {
-    margin-top: 20px;
     background-color: #fff;
     border-radius: 8px;
     overflow: hidden;
@@ -228,18 +222,6 @@ const loginOut = async () => {
     margin: 20px auto;
     width: 100px;
     text-align: center;
-    color: var(--cp-price);
-  }
-}
-
-.logOutByme {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  a {
-    text-align: center;
-    margin: 0 auto;
-    font-size: 18px;
     color: var(--cp-price);
   }
 }

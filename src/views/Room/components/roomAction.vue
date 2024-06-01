@@ -1,32 +1,32 @@
 <script setup lang="ts">
-import { OrderType } from '@/enum'
-import { uploadImg } from '@/services/consult'
+import { uploadImage } from '@/services/consult'
+import type { Image } from '@/types/consult'
 import { showLoadingToast } from 'vant'
 import type { UploaderAfterRead } from 'vant/lib/uploader/types'
-import { ref, computed } from 'vue'
-import type { Image } from '@/types/consult'
-const props = defineProps<{
+import { ref } from 'vue'
+defineProps<{
   disabled: boolean
 }>()
+
 const emit = defineEmits<{
-  (n: 'sendMsg', text: string): void
-  (n: 'sendImg', img: Image): void
+  (e: 'send-text', text: string): void
+  (e: 'send-image', image: Image): void
 }>()
-//文字内容
+
 const text = ref('')
-const sendMsg = () => {
-  emit('sendMsg', text.value)
+const sendText = () => {
+  emit('send-text', text.value)
   text.value = ''
 }
-//文件上传，通知父组件监听上传文件事件
 
-const sendImg: UploaderAfterRead = async (item) => {
+// 提交图片
+const sendImage: UploaderAfterRead = async (item) => {
   if (Array.isArray(item)) return
   if (!item.file) return
   const t = showLoadingToast({ message: '正在上传', duration: 0 })
-  const res = await uploadImg(item.file)
+  const res = await uploadImage(item.file)
   t.close()
-  emit('sendImg', res.data)
+  emit('send-image', res.data)
 }
 </script>
 
@@ -38,14 +38,14 @@ const sendImg: UploaderAfterRead = async (item) => {
       :border="false"
       placeholder="问医生"
       autocomplete="off"
-      :disabled="props.disabled"
+      :disabled="disabled"
       v-model="text"
-      @keyup.enter="sendMsg"
+      @keyup.enter="sendText"
     ></van-field>
     <van-uploader
-      :after-read="sendImg"
+      :after-read="sendImage"
       :preview-image="false"
-      :disabled="props.disabled"
+      :disabled="disabled"
     >
       <cp-icon name="consult-img" />
     </van-uploader>

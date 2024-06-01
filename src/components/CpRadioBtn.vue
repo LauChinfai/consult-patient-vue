@@ -1,35 +1,34 @@
 <script setup lang="ts">
 defineProps<{
-  options: { label: string; value: string | number }[]
-  modelValue?: string | number
+  options: { label: string; value: number | string }[]
+  modelValue?: number | string
 }>()
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string | number): void
+
+defineEmits<{
+  (e: 'update:modelValue', value: number | string): void
 }>()
-const changeGender = (value: string | number) => {
-  emit('update:modelValue', value)
-}
 </script>
 
 <template>
   <div class="cp-radio-btn">
     <a
-      href="javascript:;"
       class="item"
+      href="javascript:;"
       v-for="item in options"
       :key="item.value"
-      @click="changeGender(item.value)"
-      :class="{ active: modelValue === item.value }"
-      >{{ item.label }}</a
+      :class="{ active: item.value === modelValue }"
+      @click="$emit('update:modelValue', item.value)"
     >
+      {{ item.label }}
+    </a>
   </div>
 </template>
+
 <style lang="scss" scoped>
 .cp-radio-btn {
   display: flex;
   flex-wrap: wrap;
   .item {
-    display: block;
     height: 32px;
     min-width: 60px;
     line-height: 30px;
@@ -50,3 +49,41 @@ const changeGender = (value: string | number) => {
   }
 }
 </style>
+
+<!-- <script setup lang="ts">
+// 计数器
+// 通过 v-model 解析成 modelValue @update:modelValue
+defineProps<{
+  modelValue: number
+}>()
+
+defineEmits<{ (e: 'update:modelValue', count: number): void }>()
+</script>
+
+<template>
+  <div class="cp-radio-btn">
+    计数器：{{ modelValue }}
+    <button @click="$emit('update:modelValue', modelValue + 1)">+1</button>
+  </div>
+</template>
+
+<style lang="scss" scoped></style> -->
+
+<!-- <script setup lang="ts">
+// 计数器
+// 通过 v-model:count 解析成 count @update:count
+defineProps<{
+  count: number
+}>()
+
+defineEmits<{ (e: 'update:count', count: number): void }>()
+</script>
+
+<template>
+  <div class="cp-radio-btn">
+    计数器：{{ count }}
+    <button @click="$emit('update:count', count + 1)">+1</button>
+  </div>
+</template>
+
+<style lang="scss" scoped></style> -->

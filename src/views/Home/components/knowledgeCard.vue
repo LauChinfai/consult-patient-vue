@@ -1,24 +1,23 @@
 <script setup lang="ts">
-import type { KnowledgeList, KnowledgePage } from '@/types/consult'
-import { com_follow } from '@/composables'
+import { useFollow } from '@/composables'
+import type { Knowledge } from '@/types/consult'
+
 defineProps<{
-  data: KnowledgeList
+  item: Knowledge
 }>()
-const { loading, follow } = com_follow('knowledge')
+
+const { loading, follow } = useFollow('knowledge')
 </script>
 
 <template>
-  <div
-    class="knowledge-card van-hairline--bottom"
-    v-for="item in data"
-    :key="item.id"
-  >
+  <div class="knowledge-card van-hairline--bottom">
     <div class="head">
       <van-image round class="avatar" :src="item.creatorAvatar"></van-image>
       <div class="info">
         <p class="name">{{ item.creatorName }}</p>
         <p class="dep van-ellipsis">
-          {{ item.creatorHospatalName }} {{ item.creatorDep }}
+          {{ item.creatorHospatalName }}
+          {{ item.creatorDep }}
           {{ item.creatorTitles }}
         </p>
       </div>
@@ -28,23 +27,26 @@ const { loading, follow } = com_follow('knowledge')
         round
         :loading="loading"
         @click="follow(item)"
-        >{{ item.likeFlag === 1 ? '已关注' : '+ 关注' }}</van-button
       >
+        {{ item.likeFlag === 1 ? '已关注' : '+ 关注' }}
+      </van-button>
     </div>
     <div class="body">
-      <h3 class="title van-ellipsis">{{ item.title }}</h3>
+      <h3 class="title van-ellipsis">
+        {{ item.title }}
+      </h3>
       <p class="tag">
-        <span v-for="(top, i) in item.topics" :key="i"># {{ top }}</span>
+        <span v-for="(tag, i) in item.topics" :key="i"># {{ tag }}</span>
       </p>
       <p class="intro van-multi-ellipsis--l2">
-        {{ item.content.replace(/<[^>]*>/g, '') }}
+        {{ item.content.replace(/<[^>]+>/g, '') }}
       </p>
-      <div class="imgs">
+      <div class="imgs" :class="{ large: item.coverUrl.length === 1 }">
         <van-image
-          v-for="(pic, i) in item.coverUrl"
+          fit="cover"
+          v-for="(url, i) in item.coverUrl"
           :key="i"
-          :src="pic"
-          :fit="'cover'"
+          :src="url"
         />
       </div>
       <p class="logs">

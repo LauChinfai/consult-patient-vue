@@ -1,50 +1,38 @@
 <script setup lang="ts">
-import { ConsultType } from '@/enum'
+import type { ConsultType } from '@/enums'
 import ConsultItem from './ConsultItem.vue'
-import type { ConsultOrderItem, ConsultOrderListParams } from '@/types/consult'
 import { ref } from 'vue'
-import { onMounted } from 'vue'
+import type { ConsultOrderItem, ConsultOrderListParams } from '@/types/consult'
 import { getConsultOrderList } from '@/services/consult'
-//定义父组件传来的列表类型参数
+
 const props = defineProps<{
   type: ConsultType
 }>()
-//定义响应式列表存储数据
-const list = ref<ConsultOrderItem[]>([])
-//加载
-const loading = ref(false)
-//全部内容是否加载完成
-const finished = ref(false)
-
-//列表滑到底执行函数
-const load = () => {
-  finished.value = true
-}
-
-//初始化请求数据
-const initParams = ref<ConsultOrderListParams>({
+const params = ref<ConsultOrderListParams>({
   type: props.type,
   current: 1,
   pageSize: 5
 })
 
-//请求数据
+// 加载更多
+const loading = ref(false)
+const finished = ref(false)
+const list = ref<ConsultOrderItem[]>([])
 const onLoad = async () => {
-  console.log(initParams)
-  const res = await getConsultOrderList(initParams.value)
+  const res = await getConsultOrderList(params.value)
   list.value.push(...res.data.rows)
-  if (initParams.value.current < res.data.pageTotal) {
-    initParams.value.current++
+  if (params.value.current < res.data.pageTotal) {
+    params.value.current++
   } else {
     finished.value = true
   }
   loading.value = false
 }
 
-const delOrder = (id: string) => {
-  list.value.filter((item) => {
-    return item.id !== id
-  })
+// 删除订单
+const onDelete = (id: string) => {
+  list.value = list.value.filter((item) => item.id !== id)
+  // 如果删除订单后没有数据了
   if (!list.value.length) onLoad()
 }
 </script>
@@ -52,17 +40,16 @@ const delOrder = (id: string) => {
 <template>
   <div class="consult-list">
     <van-list
-      v-model="list"
-      :loading="loading"
+      v-model:loading="loading"
       :finished="finished"
-      finished-text="没有更多了..."
+      finished-text="没有更多了"
       @load="onLoad"
     >
       <consult-item
+        @on-delete="onDelete"
         v-for="item in list"
         :key="item.id"
         :item="item"
-        @delete-order="delOrder"
       />
     </van-list>
   </div>

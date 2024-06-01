@@ -1,16 +1,24 @@
-import { ConsultType, IllnessTime, OrderType } from '@/enum'
-import { Patient } from './user'
+import type { ConsultType, IllnessTime, OrderType } from '@/enums'
+import type { Patient } from './user'
 
-//每条CARD的具体返回类型
+// 文章信息类型
 export type Knowledge = {
   id: string
-  title: string //标题
-  coverUrl: string //封面
-  topics: string[] //标签
-  collectionNumber: number //收藏数
-  commentNumber: number //评论数
-  creatorName: string //医生名
-  creatorAvatar: string //医生头像
+  /** 标题 */
+  title: string
+  /** 封面[] */
+  coverUrl: string[]
+  /** 标签[] */
+  topics: string[]
+  /** 收藏数 */
+  collectionNumber: number
+  /** 评论数 */
+  commentNumber: number
+  /** 医生名称 */
+  creatorName: string
+  /** 医生头像 */
+  creatorAvatar: string
+  /** 医生医院 */
   creatorHospatalName: string
   /** 关注文章 */
   likeFlag: 0 | 1
@@ -23,35 +31,31 @@ export type Knowledge = {
   /** 医生ID */
   creatorId: string
 }
-//定义图片列表
-export type Image = {
-  id: string
-  url: string
-}
-//List的返回类型
+
+// 文章列表
 export type KnowledgeList = Knowledge[]
-//返回res的类型
+
+// 文章列表带分页
 export type KnowledgePage = {
   pageTotal: number
   total: number
   rows: KnowledgeList
 }
-//定义传参type字段类型
-export type Type = 'like' | 'recommend' | 'fatReduction' | 'food'
-//定义传参类型
-export type KnowledgeParams = ParamsPage & {
-  type: Type
-}
-//提取查询参数公共部分
-export type ParamsPage = {
+
+// props类型 recommend推荐，fatReduction减脂，food健康饮食，like关注医生页面文章
+export type KnowledgeType = 'like' | 'recommend' | 'fatReduction' | 'food'
+
+export type PageParams = {
   current: number
   pageSize: number
 }
 
-//医生列表查询参数
-export type DoctorParams = ParamsPage & {}
+// 文章列表查询参数
+export type KnowledgeParams = PageParams & {
+  type: KnowledgeType
+}
 
-//医生列表具体信息
+// 医生卡片对象
 export type Doctor = {
   /** 医生ID */
   id: string
@@ -79,20 +83,27 @@ export type Doctor = {
   major: string
 }
 
-//医生列表
+// 医生列表
 export type DoctorList = Doctor[]
 
-//医生分页
+// 医生分页
 export type DoctorPage = {
   pageTotal: number
   total: number
   rows: DoctorList
 }
 
-//TODO   关注的类型      关注医生/关注文章/关注话题/关注疾病
-export type FollowType = 'doc' | 'knowledge' | 'topic' | 'disease'
+// 关注的目标类型：topic百科话题,knowledge百科文章,doc医生,disease疾病
+export type FollowType = 'topic' | 'knowledge' | 'doc' | 'disease'
 
-//问诊订单详情
+// 图片列表
+export type Image = {
+  /** 图片ID */
+  id: string
+  /** 图片地址 */
+  url: string
+}
+// 问诊记录
 export type Consult = {
   /** 问诊记录ID */
   id: string
@@ -116,29 +127,32 @@ export type Consult = {
   couponId: string
 }
 
-export type PartialConsult = Partial<Consult>
+// Partial<T> 把一个对象的属性转换成可选
+type PartialConsult = Partial<Consult>
+// Required<T> 把一个对象的属性转换成必选
+// type RequiredConsult = Required<PartialConsult>
 
-//科室
-export type SubDep = {
-  //科室id
+// 二级科室
+type SubDep = {
   id: string
-  //科室名称
   name: string
 }
-//科室
-export type TopDep = SubDep & {
+// 一级科室
+type TopDep = SubDep & {
   child: SubDep[]
 }
-//收集病情表单
-export type ConsultIllness = Pick<
+
+// 病情描述对象
+type ConsultIllness = Pick<
   PartialConsult,
   'illnessDesc' | 'illnessTime' | 'consultFlag' | 'pictures'
 >
 
-//预支付传参
-export type ConsultPrepayParams = Pick<Consult, 'type' | 'illnessType'>
-//预支付信息
-export type ConsultPrepay = {
+// 问诊订单预支付传参
+export type ConsultOrderPreParams = Pick<PartialConsult, 'type' | 'illnessType'>
+
+// 问诊订单预支付信息
+export type ConsultOrderPreData = {
   /** 积分抵扣 */
   pointDeduction: number
   /** 优惠券抵扣 */
@@ -183,14 +197,12 @@ export type ConsultOrderItem = Consult & {
   actualPayment: number
 }
 
-// 评价功能接口参数类型定义
-export type ConsultOrderListParams = ParamsPage & {
+export type ConsultOrderListParams = PageParams & {
   type: ConsultType
 }
 
-//带分号问诊订单类型
 export type ConsultOrderPage = {
-  pageTotal: number
   total: number
+  pageTotal: number
   rows: ConsultOrderItem[]
 }

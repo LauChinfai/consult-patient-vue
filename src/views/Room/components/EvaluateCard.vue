@@ -1,49 +1,48 @@
 <script setup lang="ts">
-import { evaluateConsultOrder } from '@/services/consult'
 import type { ConsultOrderItem } from '@/types/consult'
 import type { EvaluateDoc } from '@/types/room'
-import { showDialog, showToast } from 'vant'
-import { inject } from 'vue'
-import { computed } from 'vue'
-import { ref } from 'vue'
+import { showToast } from 'vant'
+import { ref, computed, inject } from 'vue'
 import type { Ref } from 'vue'
+import { evaluateConsultOrder } from '@/services/consult'
+
 defineProps<{
-  commentDetail?: EvaluateDoc
+  evaluateDoc?: EvaluateDoc
 }>()
-//接收传来的consult
+
+// 注入问诊订单
 const consult = inject<Ref<ConsultOrderItem>>('consult')
+const completeEva = inject<(score: number) => void>('completeEva')
 
-//接收传来的更新视图评价方法
-const changeEvaluate = inject<(score: number) => void>('changeEvaluate')
-
-//评价相关数据
-const rate = ref(0)
+// 收集数据
+const score = ref(0)
 const content = ref('')
-const isUnname = ref(false)
-
-//点击事件
-const sub = async () => {
-  if (!rate.value) return showToast('请评分')
+const anonymousFlag = ref(false)
+const disabled = computed(() => !score.value || !content.value)
+const onSubmit = async () => {
+  if (!score.value) return showToast('请选择评分')
   if (!content.value) return showToast('请填写评价')
-  if (consult?.value.docInfo?.id && consult.value.id) {
+  if (!consult?.value) return showToast('未找到订单')
+  // 提交评价信息
+  if (consult?.value.docInfo) {
     await evaluateConsultOrder({
-      score: rate.value,
-      content: content.value,
-      anonymousFlag: isUnname.value ? 1 : 0,
       docId: consult?.value.docInfo?.id,
-      orderId: consult?.value.id
+      orderId: consult?.value.id,
+      score: score.value,
+      content: content.value,
+      anonymousFlag: anonymousFlag.value ? 1 : 0
     })
-    changeEvaluate && changeEvaluate(rate.value)
+    completeEva && completeEva(score.value)
   }
 }
 </script>
 
 <template>
-  <div class="evaluate-card" v-if="commentDetail">
+  <div class="evaluate-card" v-if="evaluateDoc">
     <p class="title">医生服务评价</p>
     <p class="desc">我们会更加努力提升服务质量</p>
     <van-rate
-      :modelValue="commentDetail.score"
+      :modelValue="evaluateDoc.score"
       size="7vw"
       gutter="3vw"
       color="#FADB14"
@@ -51,29 +50,34 @@ const sub = async () => {
       void-color="rgba(0,0,0,0.04)"
     />
   </div>
-  <!--  -->
   <div class="evaluate-card" v-else>
     <p class="title">感谢您的评价</p>
     <p class="desc">本次在线问诊服务您还满意吗？</p>
     <van-rate
-      v-model="rate"
       size="7vw"
       gutter="3vw"
       color="#FADB14"
       void-icon="star"
       void-color="rgba(0,0,0,0.04)"
+      v-model="score"
     />
     <van-field
-      v-moodel="content"
       type="textarea"
       maxlength="150"
       show-word-limit
       rows="3"
       placeholder="请描述您对医生的评价或是在医生看诊过程中遇到的问题"
+      v-model="content"
     ></van-field>
     <div class="footer">
-      <van-checkbox v-model="isUnname">匿名评价</van-checkbox>
-      <van-button type="primary" size="small" round @click="sub">
+      <van-checkbox v-model="anonymousFlag">匿名评价</van-checkbox>
+      <van-button
+        :class="{ disabled }"
+        @click="onSubmit"
+        type="primary"
+        size="small"
+        round
+      >
         提交评价
       </van-button>
     </div>

@@ -1,132 +1,115 @@
-import { useUser } from '@/stores'
+import { useUserStore } from '@/stores'
 import { createRouter, createWebHistory } from 'vue-router'
 
-import nProgress from 'nprogress'
+import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
-import { showFailToast, showToast } from 'vant'
-//修改进度条设置
-nProgress.configure({
-  //关闭转圈
+
+NProgress.configure({
   showSpinner: false
 })
 
-//创建路由实例  createRouter
-//创建路由模式配置 createWebHistory/createWebHashHistory
-
+// 如何得到路由实例 createRouter()
+// 如何设置路由模式 history
+// history 模式 createWebHistory()
+// hash 模式 createWebHashHistory()
 const router = createRouter({
+  // history: createWebHistory(import.meta.env.BASE_URL),
+  // 默认参数 '/' 路由的基础路由
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/login',
-      component: () => import('@/views/Login/login.vue'),
+      component: () => import('@/views/Login/index.vue'),
       meta: { title: '登录' }
     },
-    //家庭档案
     {
       path: '/user/patient',
-      component: () => import('@/views/User/Patient.vue'),
+      component: () => import('@/views/User/PatientPage.vue'),
       meta: { title: '家庭档案' }
     },
-    //极速问诊
     {
       path: '/consult/fast',
-      component: () => import('@/views/Consult/consultFast.vue'),
+      component: () => import('@/views/Consult/ConsultFast.vue'),
       meta: { title: '极速问诊' }
     },
-    //病情描述
-    {
-      path: '/consult/illness',
-      component: () => import('@/views/Consult/consultIllness.vue'),
-      meta: { title: '病情描述' }
-    },
-    //选择科室
     {
       path: '/consult/dep',
-      component: () => import('@/views/Consult/consultDep.vue'),
+      component: () => import('@/views/Consult/ConsultDep.vue'),
       meta: { title: '选择科室' }
     },
-    //支付页面
+    {
+      path: '/consult/illness',
+      component: () => import('@/views/Consult/ConsultIllness.vue'),
+      meta: { title: '病情描述' }
+    },
     {
       path: '/consult/pay',
-      component: () => import('@/views/Consult/consultPay.vue'),
-      meta: { title: '请支付' }
+      component: () => import('@/views/Consult/ConsultPay.vue'),
+      meta: { title: '问诊支付' }
     },
-    //问诊室
     {
       path: '/room',
       component: () => import('@/views/Room/index.vue'),
       meta: { title: '问诊室' },
-      //钩子函数，在进入路由之前
       beforeEnter(to) {
         if (to.query.payResult === 'false') return '/user/consult'
       }
     },
-    // 问诊记录
     {
       path: '/user/consult',
       component: () => import('@/views/User/ConsultPage.vue'),
       meta: { title: '问诊记录' }
     },
-    //订单详情
     {
       path: '/user/consult/:id',
-      component: () => import('@/views/User/components/ConsultDetail.vue'),
-      meta: { title: '订单详情' }
+      component: () => import('@/views/User/ConsultDetail.vue'),
+      meta: { title: '问诊详情' }
     },
-
     {
-      path: '/layout',
-      component: () => import('@/views/Layout/index.vue'),
+      path: '/',
       redirect: '/home',
+      component: () => import('@/views/Layout/index.vue'),
       children: [
         {
           path: '/home',
           component: () => import('@/views/Home/index.vue'),
-          meta: { title: '主页' }
+          meta: { title: '首页' }
         },
         {
           path: '/article',
           component: () => import('@/views/Article/index.vue'),
-          meta: { title: '百科' }
+          meta: { title: '健康百科' }
         },
         {
           path: '/notify',
           component: () => import('@/views/Notify/index.vue'),
-          meta: { title: '消息' }
+          meta: { title: '消息通知' }
         },
         {
           path: '/user',
           component: () => import('@/views/User/index.vue'),
-          meta: { title: '我的' }
+          meta: { title: '个人中心' }
         }
       ]
     }
   ]
 })
 
-//全局导航守卫
+// 全局的前置导航守卫
 router.beforeEach((to) => {
-  //模拟beforeEnter
-  // if (to.query.payResult && to.query.payResult === 'false') return '/user/consult55'
-
-  const store = useUser()
-  //设置白名单
-  const whiteList = ['/login']
-  if (!store.user?.token && !whiteList.includes(to.path)) {
-    showFailToast('登录超时')
-    return '/login'
-  }
-
-  //开启进度条
-  nProgress.start()
+  NProgress.start()
+  // 获取 token 的
+  const store = useUserStore()
+  // 白名单
+  const wihteList = ['/login']
+  // 如果你没有token并且不在白名单里面，重定向到登录
+  if (!store.user?.token && !wihteList.includes(to.path)) return '/login'
 })
 
-//路由后置守卫设置页面标题修改
+// 全局的后置导航
 router.afterEach((to) => {
-  document.title = `${to.meta.title}-优医问诊` || ''
-
-  //关闭进度条
-  nProgress.done()
+  document.title = `${to.meta.title || ''}-优医问诊`
+  NProgress.done()
 })
 
 export default router

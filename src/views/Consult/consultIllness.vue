@@ -1,89 +1,82 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { IllnessTime } from '@/enum'
-import type { ConsultIllness, Image } from '@/types/consult'
-import type { UploaderAfterRead } from 'vant/lib/uploader/types'
-import { uploadImg } from '@/services/consult'
-import { computed } from 'vue'
-import { showConfirmDialog, showToast } from 'vant'
+import { flagOptions, timeOptions } from '@/services/constants'
+import { uploadImage } from '@/services/consult'
 import { useConsultStore } from '@/stores'
+import type { ConsultIllness, Image } from '@/types/consult'
+import { showConfirmDialog, showToast } from 'vant'
+import type {
+  UploaderAfterRead,
+  UploaderFileListItem
+} from 'vant/lib/uploader/types'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
-//设置时间
-const options = [
-  { label: '一周内', value: IllnessTime.week },
-  { label: '一个月内', value: IllnessTime.month },
-  { label: '半年内', value: IllnessTime.halfYear },
-  { label: '一个月内', value: IllnessTime.more }
-]
 
-//设置是否就诊
-const consultBefore = [
-  { label: '是的', value: 1 },
-  { label: '没有', value: 0 }
-]
-
+// 病情描述对象
 const form = ref<ConsultIllness>({
   illnessDesc: '',
   illnessTime: undefined,
   consultFlag: undefined,
   pictures: []
 })
+
+// 上传图片
 const fileList = ref<Image[]>([])
+// 图片上传
 const onAfterRead: UploaderAfterRead = (item) => {
-  //非数组非空判断
   if (Array.isArray(item)) return
   if (!item.file) return
-  //修改状态为上传中
-  item.status = 'uploading'
-  item.message = '上传中'
 
-  //点击提交后
-  uploadImg(item.file)
+  item.status = 'uploading'
+  item.message = '上传中...'
+  uploadImage(item.file)
     .then((res) => {
       item.status = 'done'
-      item.message = ''
-      //添加唯一标识用作删除使用
-      item.mark! = res.data.url
+      item.message = undefined
+      item.url = res.data.url
+      // 同步数据
       form.value.pictures?.push(res.data)
     })
-    .catch((error) => {
-      console.dir(error)
+    .catch(() => {
       item.status = 'failed'
       item.message = '上传失败'
     })
 }
-const onDeleteImg = (item) => {
-  form.value.pictures?.filter((d) => d.url !== item.mark)
+const onDeleteImg = (item: UploaderFileListItem) => {
+  form.value.pictures = form.value.pictures?.filter(
+    (pic) => pic.url !== item.url
+  )
 }
 
-//生成计算属性判断表单是否必填
 const disabled = computed(
   () =>
     !form.value.illnessDesc ||
     form.value.illnessTime === undefined ||
     form.value.consultFlag === undefined
 )
+
 const store = useConsultStore()
 const router = useRouter()
-//点击按钮
-const sub = () => {
-  if (!form.value.illnessDesc) return showToast('请填写病情描述')
-  if (form.value.illnessTime === undefined) return showToast('请填写持续时间')
-  if (form.value.consultFlag === undefined) return showToast('请填写是否就诊')
+const next = () => {
+  if (!form.value.illnessDesc) return showToast('请输入病情描述')
+  if (form.value.illnessTime === undefined)
+    return showToast('请选择症状的持续时间')
+  if (form.value.consultFlag === undefined) return showToast('请选择是否就诊过')
+  // 记录病情
   store.setIllness(form.value)
-  router.push({ path: '/user/patient', query: { isChange: 1 } })
+  // 跳转，携带标识
+  router.push('/user/patient?isChange=1')
 }
 
-//回显功能
+// 数据的回显
 onMounted(() => {
   if (store.consult.illnessDesc) {
     showConfirmDialog({
-      title: '恢复',
-      message: '是否恢复之前的填写信息？',
+      title: '温馨提示',
+      message: '是否恢复之前填写的病情信息？',
       closeOnPopstate: false
     }).then(() => {
-      const { illnessTime, illnessDesc, consultFlag, pictures } = store.consult
+      // 回显数据
+      const { illnessDesc, illnessTime, consultFlag, pictures } = store.consult
       form.value = { illnessDesc, illnessTime, consultFlag, pictures }
       fileList.value = pictures || []
     })
@@ -117,60 +110,55 @@ onMounted(() => {
       ></van-field>
       <div class="item">
         <p>本次患病多久了？</p>
-        <cp-radio-btn
-          :options="options"
-          v-model="form.illnessTime"
-          class="illnessTime"
-        ></cp-radio-btn>
+        <cp-radio-btn :options="timeOptions" v-model="form.illnessTime" />
       </div>
       <div class="item">
         <p>此次病情是否去医院就诊过？</p>
-        <cp-radio-btn
-          :options="consultBefore"
-          v-model="form.consultFlag"
-        ></cp-radio-btn>
+        <cp-radio-btn :options="flagOptions" v-model="form.consultFlag" />
       </div>
+      <!-- 上传组件 -->
       <div class="illness-img">
         <van-uploader
-          :after-read="onAfterRead"
-          @delete="onDeleteImg"
-          v-model="fileList"
           upload-icon="photo-o"
           upload-text="上传图片"
           max-count="9"
           :max-size="5 * 1024 * 1024"
+          v-model="fileList"
+          :after-read="onAfterRead"
+          @delete="onDeleteImg"
         ></van-uploader>
         <p class="tip" v-if="!fileList.length">
           上传内容仅医生可见,最多9张图,最大5MB
         </p>
       </div>
+      <!-- 下一步 -->
+      <van-button
+        @click="next"
+        :class="{ disabled }"
+        type="primary"
+        block
+        round
+      >
+        下一步
+      </van-button>
     </div>
-    <!-- 确认按钮 -->
-    <van-button
-      block
-      round
-      type="primary"
-      :class="{ disabled: disabled }"
-      @click="sub"
-      >确认</van-button
-    >
   </div>
 </template>
 
 <style lang="scss" scoped>
-.van-button {
-  margin: 0 auto;
-  width: 300px;
-  font-size: 16px;
-  margin-bottom: 30px;
-  &.disabled {
-    opacity: 1;
-    background: #fafafa;
-    color: #d9dbde;
-    border: #fafafa;
+.consult-illness-page {
+  padding-top: 46px;
+  .van-button {
+    font-size: 16px;
+    margin-bottom: 30px;
+    &.disabled {
+      opacity: 1;
+      background: #fafafa;
+      color: #d9dbde;
+      border: #fafafa;
+    }
   }
 }
-
 .illness-img {
   padding-top: 16px;
   margin-bottom: 40px;
@@ -209,14 +197,6 @@ onMounted(() => {
   }
 }
 
-:deep(.illnessTime) {
-  .item {
-    width: 90px;
-  }
-}
-.consult-illness-page {
-  padding-top: 46px;
-}
 .illness-tip {
   display: flex;
   padding: 15px;

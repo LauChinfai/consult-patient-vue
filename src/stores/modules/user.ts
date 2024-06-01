@@ -1,13 +1,17 @@
+import type { User } from '@/types/user'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { User } from '@/types/user'
-export const useUser = defineStore(
+
+export const useUserStore = defineStore(
   'cp-user',
   () => {
+    // 1. 用户信息状态
     const user = ref<User>()
+    // 2. 设置用户信息的函数
     const setUser = (u: User) => {
       user.value = u
     }
+    // 3. 删除用户信息的函数
     const delUser = () => {
       user.value = undefined
     }
