@@ -27,7 +27,7 @@ const formatTime = (time: string) => dayjs(time).format('HH:mm')
 // 查看处方
 const { onShowPrescription } = useShowPrescription()
 
-//支付
+// 跳转支付
 const router = useRouter()
 const buy = (pre?: Prescription) => {
   if (!pre) return

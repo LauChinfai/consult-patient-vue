@@ -1,3 +1,4 @@
+import type { ExpressStatus, OrderType } from '@/enums'
 import type { Medical } from './room'
 
 export type OrderPre = {

@@ -22,7 +22,7 @@ const emit = defineEmits<{
 const paymentMethod = ref<0 | 1>()
 // 支付逻辑
 const pay = async () => {
-  if (!paymentMethod.value) return showToast('请选择支付方式')
+  if (paymentMethod.value === undefined) return showToast('请选择支付方式')
   showLoadingToast({ message: '跳转支付', duration: 0 })
   const res = await getConsultOrderPayUrl({
     paymentMethod: paymentMethod.value,

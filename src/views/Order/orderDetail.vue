@@ -10,7 +10,7 @@ const { order } = useOrderDetail(route.params.id as string)
 
 <template>
   <div class="order-detail-page" v-if="order">
-    <cp-nav-bar :title="'药品订单-' + order.statusValue" />
+    <cp-nav-bar :title="`药品订单详情-${order.statusValue}`" />
     <div class="order-head">
       <div
         class="address"
@@ -48,7 +48,7 @@ const { order } = useOrderDetail(route.params.id as string)
         <van-icon name="arrow" />
       </div>
     </div>
-    <order-medical :medicines="order?.medicines" />
+    <order-medical :medicines="order.medicines"></order-medical>
     <div class="order-detail">
       <van-cell-group>
         <van-cell title="药品金额" :value="`￥${order.payment}`" />
@@ -71,7 +71,7 @@ const { order } = useOrderDetail(route.params.id as string)
           <van-cell title="支付时间" :value="order.payTime" />
           <van-cell
             title="支付方式"
-            :value="order.paymentMethod === 0 ? '微信' : '支付宝'"
+            :value="order.paymentMethod === 1 ? '支付宝' : '微信'"
           />
         </template>
       </van-cell-group>
@@ -92,9 +92,9 @@ const { order } = useOrderDetail(route.params.id as string)
     <!-- 待支付 -->
     <van-action-bar v-if="order.status === OrderType.MedicinePay">
       <p class="price">
-        需要支付：<span>￥ {{ order.actualPayment }}</span>
+        需要支付：<span>￥{{ order.actualPayment }}</span>
       </p>
-      <van-action-bar-button color="#bbb" text="取消问诊" />
+      <van-action-bar-button color="#bbb" text="取消订单" />
       <van-action-bar-button type="primary" text="继续支付" />
     </van-action-bar>
     <!-- 已完成 -->
@@ -110,7 +110,6 @@ const { order } = useOrderDetail(route.params.id as string)
   padding-top: 46px;
   padding-bottom: 65px;
 }
-
 .address {
   padding: 15px;
   background-color: #fff;
