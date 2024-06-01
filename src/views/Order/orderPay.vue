@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { getMedicalOrderPre } from '@/services/order'
+import { createMedicalOrder, getMedicalOrderPre } from '@/services/order'
 import { useRoute, useRouter } from 'vue-router'
 import type { AddressItem, OrderPre } from '@/types/order'
 import { ref } from 'vue'
 import { getAddressList } from '@/services/order'
 import { onMounted } from 'vue'
+import { showToast } from 'vant'
+import orderMedical from './components/orderMedical.vue'
 const router = useRouter()
 const route = useRoute()
 //预支付信息
@@ -34,6 +36,40 @@ onMounted(() => {
   loadOrderPre()
   loadAddress()
 })
+
+//创建药品订单
+//是否勾选同意协议
+const isAgree = ref(false)
+const loading = ref(false)
+const orderId = ref('')
+const onSubmit = async () => {
+  if (!isAgree.value) return showToast('请输入勾选协议')
+  if (!orderPre.value?.id) return showToast('未找到处方')
+  if (!address.value?.id) return showToast('请选择收货地址')
+  //如果没有订单创建订单
+  if (!orderId.value) {
+    try {
+      loading.value = true
+      const medRes = await createMedicalOrder({
+        id: orderPre.value.id,
+        addressId: address.value.id,
+        couponId: orderPre.value.couponId
+      })
+      orderId.value = medRes.data.id
+      show.value = true
+    } catch (error) {
+      console.log(error)
+      showToast('请稍后重试')
+    } finally {
+      loading.value = false
+    }
+  } else {
+    //打开抽屉
+    show.value = true
+  }
+}
+
+const show = ref(false)
 </script>
 
 <template>
@@ -55,27 +91,7 @@ onMounted(() => {
         <h3>优医药房</h3>
         <small>优医质保 假一赔十</small>
       </div>
-      <div
-        class="item van-hairline--top"
-        v-for="med in orderPre.medicines"
-        :key="med.id"
-      >
-        <img class="img" :src="med.avatar" alt="" />
-        <div class="info">
-          <p class="name">
-            <span>{{ med.name }}</span>
-            <span>x{{ med.quantity }}</span>
-          </p>
-          <p class="size">
-            <van-tag>{{
-              med.prescriptionFlag ? '处方药' : '非处方药'
-            }}</van-tag>
-            <span>80ml</span>
-          </p>
-          <p class="price">￥{{ Number(med.amount).toFixed(2) }}</p>
-        </div>
-        <div class="desc">{{ med.usageDosag }}</div>
-      </div>
+      <order-medical :medicines="orderPre.medicines"></order-medical>
     </div>
     <div class="order-detail">
       <van-cell-group>
@@ -94,14 +110,25 @@ onMounted(() => {
         由于药品的特殊性，如非错发、漏发药品的情况，药品一经发出
         不得退换，请核对药品信息无误后下单。
       </p>
-      <van-checkbox>我已同意<a href="javascript:;">支付协议</a></van-checkbox>
+      <van-checkbox v-model="isAgree"
+        >我已同意<a href="javascript:;">支付协议</a></van-checkbox
+      >
     </div>
     <van-submit-bar
       :price="orderPre.actualPayment * 100"
       button-text="立即支付"
       button-type="primary"
       text-align="left"
+      @click="onSubmit"
+      :loading="loading"
     ></van-submit-bar>
+    <!-- 支付抽屉组件 -->
+    <cp-pay-sheet
+      v-model:show="show"
+      :order-id="orderId"
+      :actual-payment="orderPre.actualPayment"
+      pay-callback="/order/pay/result"
+    ></cp-pay-sheet>
   </div>
 
   <!-- 骨架屏等待加载 -->
