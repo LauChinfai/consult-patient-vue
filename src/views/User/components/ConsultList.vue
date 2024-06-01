@@ -30,6 +30,7 @@ const initParams = ref<ConsultOrderListParams>({
 
 //请求数据
 const onLoad = async () => {
+  console.log(initParams)
   const res = await getConsultOrderList(initParams.value)
   list.value.push(...res.data.rows)
   if (initParams.value.current < res.data.pageTotal) {

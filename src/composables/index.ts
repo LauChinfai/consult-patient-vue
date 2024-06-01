@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import type { FollowType } from '@/types/consult'
-import { followOrUnfollow } from '@/services/consult'
+import { followOrUnfollow, getPrescriptionPic } from '@/services/consult'
+import { showImagePreview } from 'vant'
 //关注和取消关注逻辑复用
 export const com_follow = (type: FollowType = 'doc') => {
   //封装等待状态
@@ -16,4 +17,15 @@ export const com_follow = (type: FollowType = 'doc') => {
     }
   }
   return { loading, follow }
+}
+
+//查看处方逻辑复用
+export const showPre = () => {
+  const onShowPre = async (id: string) => {
+    if (id) {
+      const res = await getPrescriptionPic(id)
+      showImagePreview([res.data.url])
+    }
+  }
+  return { onShowPre }
 }

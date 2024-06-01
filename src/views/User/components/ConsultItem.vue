@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import { cancelOrder } from '@/services/consult'
 import { showFailToast, showSuccessToast, type PopoverAction } from 'vant'
 import { deleteOrder } from '@/services/consult'
+import { showPre } from '@/composables'
 const props = defineProps<{
   item: ConsultOrderItem
 }>()
@@ -20,7 +21,10 @@ const actions = computed(() => {
   ]
 })
 const onSelect = (actions: PopoverAction, index: number) => {
-  if (index === 1) delOrder(props.item)
+  if (props.item.prescriptionId) {
+    if (index === 1) delOrder(props.item)
+    else if (index === 0) onShowPre(props.item?.prescriptionId)
+  }
 }
 
 //取消订单
@@ -54,6 +58,8 @@ const delOrder = async (item: ConsultOrderItem) => {
     delLoading.value = true
   }
 }
+
+const { onShowPre } = showPre()
 </script>
 
 <template>
@@ -129,11 +135,12 @@ const delOrder = async (item: ConsultOrderItem) => {
     </div>
     <div class="foot" v-if="item.status === OrderType.ConsultChat">
       <van-button
-        v-if="item.prescriptionId"
+        v-if="props.item.prescriptionId"
         class="gray"
         plain
         size="small"
         round
+        @click="onShowPre(props.item?.prescriptionId)"
       >
         查看处方
       </van-button>
