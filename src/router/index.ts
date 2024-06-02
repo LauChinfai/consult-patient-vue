@@ -86,6 +86,11 @@ const router = createRouter({
       meta: { title: '物流详情' }
     },
     {
+      path: '/login/callback',
+      component: () => import('@/views/Login/LoginCallback.vue'),
+      meta: { title: '三方登录' }
+    },
+    {
       path: '/',
       redirect: '/home',
       component: () => import('@/views/Layout/index.vue'),
@@ -121,7 +126,7 @@ router.beforeEach((to) => {
   // 获取 token 的
   const store = useUserStore()
   // 白名单
-  const wihteList = ['/login']
+  const wihteList = ['/login', '/login/callback']
   // 如果你没有token并且不在白名单里面，重定向到登录
   if (!store.user?.token && !wihteList.includes(to.path)) return '/login'
 })
