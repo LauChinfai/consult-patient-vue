@@ -12,7 +12,11 @@
     <script
       src="https://connect.qq.com/qc_jssdk.js"
       data-appid="102015968"
-      data-redirecturi="http://consult-patients.itheima.net/login/callback"
+      data-redirecturi="<%=VITE_APP_CALLBACK%>/login/callback"
     ></script>
+    <%if(DEV){%>
+      <script src="//cdn.jsdelivr.net/npm/eruda"></script>
+      <script>eruda.init();</script>
+      <%}%>
   </body>
 </html>

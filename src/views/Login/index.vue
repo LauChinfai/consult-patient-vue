@@ -4,6 +4,7 @@ import { loginByMobile, loginByPassword } from '@/services/user'
 import { useUserStore } from '@/stores'
 import { codeRules, mobileRules, passwordRules } from '@/utils/rules'
 import { showSuccessToast, showToast } from 'vant'
+import { onMounted } from 'vue'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -34,6 +35,14 @@ const { onSend, time, form } = useMobileCode(mobile)
 
 // 密码的可见与不可见
 const isShow = ref(false)
+
+//区分环境配置不同回跳地址
+const qqUrl = `https://graph.qq.com/oauth2.0/authorize?client_id=102015968&response_type=token&scope=all&redirect_uri=${encodeURIComponent(
+  import.meta.env.VITE_APP_CALLBACK + '/login/callback'
+)}`
+onMounted(() => {
+  console.log(import.meta.env.BASE_URL + '去你妈的')
+})
 </script>
 
 <template>
@@ -111,7 +120,7 @@ const isShow = ref(false)
       <a
         @click="store.setReturnUrl(route.query.returnUrl as string)"
         class="icon"
-        href="https://graph.qq.com/oauth2.0/authorize?client_id=102015968&response_type=token&scope=all&redirect_uri=http%3A%2F%2Fconsult-patients.itheima.net%2Flogin%2Fcallback"
+        :href="qqUrl"
       >
         <img src="@/assets/qq.svg" alt="" />
       </a>
